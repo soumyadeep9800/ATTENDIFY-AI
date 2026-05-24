@@ -1,0 +1,4 @@
+# Python
+server/venv/
+server/__pycache__/
+*.pyc
