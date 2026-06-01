@@ -22,7 +22,6 @@ body {
 .navbar {
   width: 100%;
   height: 90px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -234,4 +233,16 @@ body {
   .hero-section {
     padding: 2.5rem 0;
   }
+}
+
+@media (max-width: 450px) {
+.home {
+  padding: 0 5%;
+}
+}
+
+@media (max-width: 400px) {
+.home {
+  padding: 0 4.5%;
+}
 }
