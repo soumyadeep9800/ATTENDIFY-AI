@@ -13,8 +13,11 @@ function TakeAttendance() {
 
   return (
     <div className="attendance-page">
+      <div className="attendance-bg-orb attendance-bg-orb-1"></div>
+      <div className="attendance-bg-orb attendance-bg-orb-2"></div>
+
       <div className="attendance-header">
-        <div>
+        <div className="attendance-header-content">
           <span className="page-badge">Smart Classroom</span>
           <h1>Take Attendance</h1>
           <p>
@@ -28,58 +31,12 @@ function TakeAttendance() {
         </div>
       </div>
 
-      <section className="workflow-card">
-        <div className="section-title-wrap">
-          <h2>Attendance Workflow</h2>
-          <span className="mini-tag">5 steps</span>
-        </div>
-
-        <div className="workflow-steps">
-          <div className="step active">
-            <span>1</span>
-            <div>
-              <strong>Select Subject</strong>
-              <small>Choose class</small>
-            </div>
-          </div>
-
-          <div className="step">
-            <span>2</span>
-            <div>
-              <strong>Upload Photos</strong>
-              <small>Add classroom images</small>
-            </div>
-          </div>
-
-          <div className="step">
-            <span>3</span>
-            <div>
-              <strong>Face Analysis</strong>
-              <small>Detect students</small>
-            </div>
-          </div>
-
-          <div className="step">
-            <span>4</span>
-            <div>
-              <strong>Voice Check</strong>
-              <small>Extra verification</small>
-            </div>
-          </div>
-
-          <div className="step">
-            <span>5</span>
-            <div>
-              <strong>Result</strong>
-              <small>Confirm attendance</small>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="attendance-card subject-card">
         <div className="section-title-wrap">
-          <h2>Select Subject</h2>
+          <div>
+            <span className="section-kicker">Session Setup</span>
+            <h2>Select Subject</h2>
+          </div>
           <span className="mini-tag">Required</span>
         </div>
 
@@ -103,7 +60,10 @@ function TakeAttendance() {
       <section className="attendance-grid">
         <div className="attendance-card feature-card">
           <div className="card-top">
-            <h2>Photo Attendance</h2>
+            <div>
+              <span className="section-kicker">AI Module</span>
+              <h2>Photo Attendance</h2>
+            </div>
             <span className="status-pill">Ready</span>
           </div>
 
@@ -127,13 +87,16 @@ function TakeAttendance() {
 
         <div className="attendance-card feature-card">
           <div className="card-top">
-            <h2>Voice Attendance</h2>
+            <div>
+              <span className="section-kicker">Verification</span>
+              <h2>Voice Attendance</h2>
+            </div>
             <span className="status-pill alt">Optional</span>
           </div>
 
           <p>
             Verify students using registered voice samples for additional
-            security.
+            security and better attendance confidence.
           </p>
 
           <div className="info-box subtle">
@@ -148,22 +111,10 @@ function TakeAttendance() {
 
       <section className="attendance-card">
         <div className="section-title-wrap">
-          <h2>Recognition Tips</h2>
-          <span className="mini-tag">Best practice</span>
-        </div>
-
-        <ul className="tips-list">
-          <li>Ensure classroom photos are clear and properly illuminated.</li>
-          <li>Avoid blurry images and extreme camera angles.</li>
-          <li>Ensure all students are visible in the frame.</li>
-          <li>Use voice verification when face confidence scores are low.</li>
-          <li>Verify attendance results before submission.</li>
-        </ul>
-      </section>
-
-      <section className="attendance-card">
-        <div className="section-title-wrap">
-          <h2>Session Information</h2>
+          <div>
+            <span className="section-kicker">Realtime Overview</span>
+            <h2>Session Information</h2>
+          </div>
           <span className="mini-tag">Live stats</span>
         </div>
 
