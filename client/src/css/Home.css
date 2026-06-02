@@ -39,7 +39,7 @@ body {
   gap: 1rem;
 }
 
-.nav-btn {
+.nav-btn-teacher,.nav-btn-student {
   padding: 12px 24px;
   border: none;
   border-radius: 10px;
@@ -50,21 +50,15 @@ body {
   transition: 0.3s ease;
 }
 
-.nav-btn:hover {
+.nav-btn-teacher:hover, .nav-btn-student:hover {
   transform: translateY(-2px);
-  background: #3b82f6;
-}
-
-.teacher {
-  background: transparent;
-  border: 1px solid #3b82f6;
+  background: #0062ff;
 }
 
 /* HERO */
 
 .hero-section {
   min-height: calc(100vh - 90px);
-
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -72,7 +66,6 @@ body {
 }
 
 /* LEFT */
-
 .hero-left {
   flex: 1;
 }
@@ -138,7 +131,6 @@ body {
 
 .hero-right {
   flex: 1;
-
   display: flex;
   justify-content: center;
 }
@@ -147,12 +139,9 @@ body {
   width: 400px;
   padding: 2rem;
   border-radius: 25px;
-
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(15px);
-
   border: 1px solid rgba(255, 255, 255, 0.15);
-
   box-shadow: 0 0 40px rgba(37, 99, 235, 0.3);
 }
 
@@ -165,14 +154,10 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
-
   padding: 1rem;
   margin-bottom: 1rem;
-
   border-radius: 12px;
-
   background: rgba(255, 255, 255, 0.05);
-
   transition: 0.3s ease;
 }
 

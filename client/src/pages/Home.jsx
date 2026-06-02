@@ -11,11 +11,11 @@ function Home() {
         <h1 className="logo">ATTENDIFY AI</h1>
 
         <div className="nav-links">
-          <button className="nav-btn" onClick={() => navigate("/student-login")}>
+          <button className="nav-btn-student" onClick={() => navigate("/student-login")}>
             Student Portal
           </button>
 
-          <button className="nav-btn teacher" onClick={() => navigate("/teacher-login")}>
+          <button className="nav-btn-teacher" onClick={() => navigate("/teacher-login")}>
             Teacher Portal
           </button>
         </div>
