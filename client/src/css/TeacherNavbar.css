@@ -1,0 +1,111 @@
+.teacher-navbar {
+  background: #0f172a;
+  color: white;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+  position: relative;
+}
+
+.navbar-left h2 {
+  color: #38bdf8;
+  font-size: 24px;
+}
+
+.navbar-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-btn {
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  color: white;
+}
+
+.nav-btn.active {
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.logout-btn {
+  border: none;
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #ef4444;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  opacity: 0.9;
+}
+
+.hamburger {
+  display: none;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+    font-size: 30px;
+    font-weight: bold;
+  }
+
+  .navbar-center {
+    position: absolute;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background: #0f172a;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    overflow: hidden;
+
+    max-height: 0;
+    opacity: 0;
+
+    transition:
+      max-height 0.35s ease,
+      opacity 0.3s ease;
+
+    z-index: 1000;
+  }
+
+  .navbar-center.show-menu {
+    max-height: 400px;
+    opacity: 1;
+  }
+
+  .nav-btn,
+  .logout-btn {
+    width: 100%;
+    text-align: left;
+    padding: 14px 20px;
+    border-radius: 0;
+  }
+}

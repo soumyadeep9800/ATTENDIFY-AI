@@ -1,0 +1,14 @@
+.dashboard-container {
+  min-height: 100vh;
+  /* background: #629eeb; */
+}
+
+.dashboard-content {
+  padding: 15px;
+}
+
+@media (max-width: 500px) {
+  .dashboard-content {
+    padding: 10px;
+  }
+}

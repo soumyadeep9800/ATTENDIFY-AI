@@ -2,7 +2,7 @@ import "../css/StudentLogin.css";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/StudentLogin.css";
-#react-webcam
+//react-webcam
 function StudentLogin() {
   const navigate = useNavigate();
 

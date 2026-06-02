@@ -1,12 +1,65 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 import "../css/TeacherLogin.css";
 
 function TeacherLogin() {
+  const API_URL = "http://localhost:8000";
   const navigate = useNavigate();
-
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      if (isRegister) {
+        if (password !== confirmPassword) {
+          alert("Passwords do not match");
+          return;
+        }
+        await axios.post(
+          `${API_URL}/teachers/register`,
+          {
+            name,
+            username,
+            password
+          }
+        );
+        alert("Registration Successful");
+        setIsRegister(false);
+        return;
+      }
+      const res = await axios.post(
+        `${API_URL}/teachers/login`,
+        {
+          username,
+          password
+        }
+      );
+      localStorage.setItem(
+        "token",
+        res.data.access_token
+      );
+      localStorage.setItem(
+        "teacher",
+        JSON.stringify(res.data)
+      );
+      navigate("/teacher-dashboard");
+
+    } catch (error) {
+      console.error(error);
+      alert(
+        error?.response?.data?.detail || "Something went wrong"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="teacher_auth_page">
@@ -116,7 +169,7 @@ function TeacherLogin() {
             </p>
           </div>
 
-          <form className="teacher_form">
+          <form className="teacher_form" onSubmit={handleSubmit}>
 
             {isRegister && (
               <div className="teacher_field_group">
@@ -124,6 +177,10 @@ function TeacherLogin() {
 
                 <input
                   type="text"
+                  value={name}
+                  onChange={(e) =>
+                    setName(e.target.value)
+                  }
                   placeholder="Enter your full name"
                 />
               </div>
@@ -134,6 +191,10 @@ function TeacherLogin() {
 
               <input
                 type="text"
+                value={username}
+                onChange={(e) =>
+                  setUsername(e.target.value)
+                }
                 placeholder="Enter username"
               />
             </div>
@@ -143,6 +204,10 @@ function TeacherLogin() {
 
               <input
                 type="password"
+                value={password}
+                onChange={(e) =>
+                  setPassword(e.target.value)
+                }
                 placeholder="Enter password"
               />
             </div>
@@ -153,6 +218,10 @@ function TeacherLogin() {
 
                 <input
                   type="password"
+                  value={confirmPassword}
+                  onChange={(e) =>
+                    setConfirmPassword(e.target.value)
+                  }
                   placeholder="Confirm password"
                 />
               </div>
@@ -162,7 +231,7 @@ function TeacherLogin() {
               type="submit"
               className="teacher_submit_btn"
             >
-              {isRegister ? "Create Account" : "Login"}
+              {loading ? "Please Wait..." : isRegister ? "Create Account" : "Login"}
             </button>
 
           </form>
