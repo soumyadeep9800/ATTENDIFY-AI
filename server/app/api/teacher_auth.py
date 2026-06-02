@@ -92,6 +92,11 @@ def login_teacher(
     "username": teacher.username
     }
 
+@router.post("/logout")
+def logout_teacher():
+    return {
+        "message": "Logged out successfully"
+    }
 
 @router.get("/dashboard")
 def dashboard(

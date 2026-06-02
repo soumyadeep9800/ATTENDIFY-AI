@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../css/TeacherNavbar.css";
+
+
 function TeacherNavbar({
   activeTab,
   setActiveTab,
@@ -12,9 +14,8 @@ function TeacherNavbar({
 
   const handleLogout = () => {
     localStorage.removeItem("teacher");
-
+    localStorage.removeItem("token");
     alert("Logout Successful");
-
     navigate("/");
   };
 
