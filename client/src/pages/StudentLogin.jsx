@@ -40,7 +40,7 @@ function StudentLogin() {
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
-        audio: false, 
+        audio: false,
       });
 
       streamRef.current = mediaStream;
