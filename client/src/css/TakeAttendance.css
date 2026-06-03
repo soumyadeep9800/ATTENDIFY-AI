@@ -1,26 +1,20 @@
 :root {
   --bg-primary: #050816;
   --bg-secondary: #0f172a;
-
   --blue-primary: #2563eb;
   --blue-light: #60a5fa;
-
-  --text-primary: #ffffff;
+  --tex-primary: #ffffff;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-
   --glass-bg: rgba(255, 255, 255, 0.06);
   --glass-bg-strong: rgba(255, 255, 255, 0.08);
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-highlight: rgba(255, 255, 255, 0.04);
-
   --shadow-blue: 0 20px 60px rgba(37, 99, 235, 0.18);
   --shadow-soft: 0 10px 35px rgba(0, 0, 0, 0.32);
-
   --radius-sm: 12px;
   --radius-md: 18px;
   --radius-lg: 26px;
-
   --transition: 0.3s ease;
 }
 
@@ -493,5 +487,195 @@ body {
 
   .stat-box span {
     font-size: 1.7rem;
+  }
+}
+
+
+
+
+
+
+
+
+
+.photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-content {
+  position: relative;
+  width: min(90vw, 520px);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: modalPop 0.3s ease;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  color: #0f172a;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  left: auto;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f1f1;
+  color: #222;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content video {
+  width: 100%;
+  min-height: 260px;
+  background: #000;
+  border-radius: 12px;
+  object-fit: cover;
+  margin: 16px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 10px 0 10px;
+}
+
+.camera-btn-open,
+.capture-btn {
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.camera-btn-open {
+  background: #eef2ff;
+  color: #2d3a8c;
+  border: 1px solid #c7d2fe;
+}
+
+.camera-btn-open:hover {
+  background: #0040ff;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.camera-btn-open:active {
+  transform: translateY(0);
+}
+
+.camera-btn-open:focus-visible {
+  box-shadow: 0 0 0 3px rgba(79, 112, 255, 0.28);
+}
+
+.capture-btn {
+  width: 100%;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #65bef5, #0747ae);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.28);
+}
+
+.capture-btn:hover {
+  background: linear-gradient(135deg, #4db9fc, #083c90);
+  transform: translateY(-1px);
+}
+
+.capture-btn:active {
+  transform: translateY(0);
+}
+
+.capture-btn:focus-visible {
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.25);
+}
+
+.gallery-input {
+  font-size: 14px;
+  color: #374151;
+  max-width: 100%;
+}
+
+.gallery-input::file-selector-button {
+  margin-right: 12px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #111827;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.gallery-input::file-selector-button:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.gallery-input::file-selector-button:active {
+  transform: translateY(0);
+}
+
+.gallery-input:focus-visible::file-selector-button {
+  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.22);
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .modal-content h2 {
+    font-size: 1.4rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .camera-btn-open,
+  .gallery-input,
+  .gallery-input::file-selector-button {
+    width: 100%;
   }
 }

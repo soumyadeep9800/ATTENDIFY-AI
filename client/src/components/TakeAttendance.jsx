@@ -1,15 +1,159 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "../css/TakeAttendance.css";
 
 function TakeAttendance() {
-  const [subject, setSubject] = useState("");
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const attendanceGridRef = useRef(null);
+  const API_URL = "http://localhost:8000";
 
-  const subjects = [
-    "Data Structures",
-    "Database Management System",
-    "Operating System",
-    "Computer Networks",
-  ];
+  const [subjects, setSubjects] = useState([]);
+  const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photos, setPhotos] = useState([]);
+  const [cameraStream, setCameraStream] = useState(null);
+
+  const teacher = JSON.parse(localStorage.getItem("teacher"));
+  const teacherId = teacher?.teacher_id;
+
+  useEffect(() => {
+    if (teacherId) {
+      fetchSubjects();
+    }
+  }, [teacherId]);
+
+  useEffect(() => {
+    if (showPhotoModal) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+
+    return () => stopCamera();
+  }, [showPhotoModal]);
+
+  const fetchSubjects = async () => {
+    try {
+      const response = await fetch(`${API_URL}/subjects/teacher/${teacherId}`);
+      if (!response.ok) throw new Error();
+      const data = await response.json();
+      setSubjects(data);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to load subjects");
+    }
+  };
+
+  const handleStartSession = () => {
+    if (!selectedSubjectId) {
+      alert("Please select a subject");
+      return;
+    }
+
+    attendanceGridRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
+  const handleGalleryUpload = (event) => {
+    const files = Array.from(event.target.files);
+    setPhotos((prev) => [...prev, ...files]);
+  };
+
+  const startCamera = async () => {
+    try {
+      if (cameraStream) return;
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      setCameraStream(stream);
+    } catch (err) {
+      console.error(err);
+      alert("Unable to access camera");
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((track) => track.stop());
+      setCameraStream(null);
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const capturePhoto = () => {
+    const canvas = canvasRef.current;
+    const video = videoRef.current;
+
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext("2d").drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+
+      const file = new File([blob], `photo-${Date.now()}.jpg`, {
+        type: "image/jpeg",
+      });
+
+      setPhotos((prev) => [...prev, file]);
+    }, "image/jpeg");
+  };
+
+  const handleDone = () => {
+    stopCamera();
+    setShowPhotoModal(false);
+  };
+
+  const handleCloseModal = () => {
+    stopCamera();
+    setShowPhotoModal(false);
+  };
+
+  const clearPhotos = () => {
+    setPhotos([]);
+  };
+
+  const runFaceAnalysis = async () => {
+    if (photos.length === 0) {
+      alert("Please add photos first");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("subject_id", selectedSubjectId);
+
+    photos.forEach((photo) => {
+      formData.append("photos", photo);
+    });
+
+    try {
+      const response = await fetch(`${API_URL}/attendance/face`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      console.log(data);
+      alert("Face analysis completed");
+    } catch (error) {
+      console.error(error);
+      alert("Analysis failed");
+    }
+  };
 
   return (
     <div className="attendance-page">
@@ -27,7 +171,9 @@ function TakeAttendance() {
         </div>
 
         <div className="header-action">
-          <button className="primary-btn">Start Session</button>
+          <button className="primary-btn" onClick={handleStartSession}>
+            Start Session
+          </button>
         </div>
       </div>
 
@@ -44,20 +190,20 @@ function TakeAttendance() {
 
         <div className="select-wrap">
           <select
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
+            value={selectedSubjectId}
+            onChange={(e) => setSelectedSubjectId(e.target.value)}
           >
             <option value="">Choose Subject</option>
             {subjects.map((sub) => (
-              <option key={sub} value={sub}>
-                {sub}
+              <option key={sub.subject_id} value={sub.subject_id}>
+                {sub.name} ({sub.subject_code})
               </option>
             ))}
           </select>
         </div>
       </section>
 
-      <section className="attendance-grid">
+      <section className="attendance-grid" ref={attendanceGridRef}>
         <div className="attendance-card feature-card">
           <div className="card-top">
             <div>
@@ -74,15 +220,25 @@ function TakeAttendance() {
 
           <div className="info-box">
             <span>Uploaded Photos</span>
-            <strong>0</strong>
+            <strong>{photos.length}</strong>
           </div>
 
           <div className="btn-group">
-            <button className="primary-btn">Add Photos</button>
-            <button className="secondary-btn">Clear Photos</button>
+            <button
+              className="primary-btn"
+              onClick={() => setShowPhotoModal(true)}
+            >
+              Add Photos
+            </button>
+
+            <button className="secondary-btn" onClick={clearPhotos}>
+              Clear Photos
+            </button>
           </div>
 
-          <button className="analysis-btn">Run Face Analysis</button>
+          <button className="analysis-btn" onClick={runFaceAnalysis}>
+            Run Face Analysis
+          </button>
         </div>
 
         <div className="attendance-card feature-card">
@@ -135,6 +291,70 @@ function TakeAttendance() {
           </div>
         </div>
       </section>
+
+      {showPhotoModal && (
+        <div className="photo-modal" onClick={handleCloseModal}>
+          <div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="photo-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="modal-close-btn"
+              onClick={handleCloseModal}
+              aria-label="Close photo modal"
+              type="button"
+            >
+              ×
+            </button>
+
+            <h2 id="photo-modal-title">Upload Attendance Photos</h2>
+
+            <div className="modal-actions">
+              <button type="button" className="camera-btn-open" onClick={startCamera}>
+                Open Camera
+              </button>
+
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleGalleryUpload}
+                className="gallery-input"
+              />
+            </div>
+
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              width="400"
+            />
+
+            <canvas
+              ref={canvasRef}
+              style={{ display: "none" }}
+            />
+
+            <button type="button" className="capture-btn" onClick={capturePhoto}>
+              Capture Photo
+            </button>
+
+            <p>Photos Selected: {photos.length}</p>
+
+            <button
+              className="primary-btn"
+              type="button"
+              onClick={handleDone}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

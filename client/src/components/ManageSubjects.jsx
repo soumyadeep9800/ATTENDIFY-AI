@@ -1,59 +1,111 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/ManageSubject.css";
 
 function ManageSubjects() {
+  const API_URL = "http://localhost:8000";
   const [subjectName, setSubjectName] = useState("");
   const [subjectCode, setSubjectCode] = useState("");
   const [section, setSection] = useState("");
+  const [subjects, setSubjects] = useState([]);
+  
+  const teacher = JSON.parse(
+  localStorage.getItem("teacher")
+  );
+  const teacherId = teacher?.teacher_id;
 
-  const [subjects, setSubjects] = useState([
-    {
-      id: 1,
-      name: "Database Management System",
-      code: "DBMS101",
-      section: "A",
-      students: 45,
-    },
-    {
-      id: 2,
-      name: "Operating System",
-      code: "OS201",
-      section: "B",
-      students: 38,
-    },
-  ]);
+  useEffect(() => {
+    if (teacherId) {
+      fetchSubjects();
+    }
+  }, [teacherId]);
+  const fetchSubjects = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/subjects/teacher/${teacherId}`
+      );
+      const data = await response.json();
+      setSubjects(data);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to load subjects");
+    }
+  };
 
-  const handleCreateSubject = () => {
-    if (!subjectName || !subjectCode || !section) {
+  const handleCreateSubject = async () => {
+    if (
+      !subjectName ||
+      !subjectCode ||
+      !section
+    ) {
       alert("Please fill all fields");
       return;
     }
-
-    const newSubject = {
-      id: Date.now(),
-      name: subjectName,
-      code: subjectCode,
-      section,
-      students: 0,
-    };
-
-    setSubjects([...subjects, newSubject]);
-
-    setSubjectName("");
-    setSubjectCode("");
-    setSection("");
+    try {
+      const response = await fetch(
+        `${API_URL}/subjects/teacher/${teacherId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            subject_code: subjectCode,
+            name: subjectName,
+            section: section,
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error();
+      }
+      const newSubject = await response.json();
+      setSubjects((prev) => [
+        ...prev,
+        newSubject,
+      ]);
+      setSubjectName("");
+      setSubjectCode("");
+      setSection("");
+      alert("Subject created successfully");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create subject");
+    }
   };
 
-  const handleDelete = (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this subject?"
-    );
-
+  const handleDelete = async (subjectId) => {
+    const confirmDelete =
+      window.confirm(
+        "Are you sure you want to delete this subject?"
+      );
     if (!confirmDelete) return;
+    try {
+      const response = await fetch(
+        `${API_URL}/subjects/${subjectId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-    setSubjects(
-      subjects.filter((subject) => subject.id !== id)
-    );
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      setSubjects((prev) =>
+        prev.filter(
+          (subject) =>
+            subject.subject_id !== subjectId
+        )
+      );
+
+      alert(
+        "Subject deleted successfully"
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete subject");
+    }
   };
 
   const handleCopyCode = (code) => {
@@ -149,7 +201,7 @@ function ManageSubjects() {
           ) : (
             subjects.map((subject) => (
               <div
-                key={subject.id}
+                key={subject.subject_id}
                 className="subject-item"
               >
                 <div className="subject-info">
@@ -157,7 +209,7 @@ function ManageSubjects() {
 
                   <p>
                     Code:
-                    <span> {subject.code}</span>
+                    <span> {subject.subject_code}</span>
                   </p>
 
                   <p>
@@ -179,7 +231,7 @@ function ManageSubjects() {
                   <button
                     className="share-btn"
                     onClick={() =>
-                      handleCopyCode(subject.code)
+                      handleCopyCode(subject.subject_code)
                     }
                   >
                     Share Code
@@ -188,7 +240,7 @@ function ManageSubjects() {
                   <button
                     className="qr-btn"
                     onClick={() =>
-                      handleShowQR(subject.code)
+                      handleShowQR(subject.subject_code)
                     }
                   >
                     Show QR
@@ -197,7 +249,7 @@ function ManageSubjects() {
                   <button
                     className="delete-btn"
                     onClick={() =>
-                      handleDelete(subject.id)
+                      handleDelete(subject.subject_id)
                     }
                   >
                     Delete

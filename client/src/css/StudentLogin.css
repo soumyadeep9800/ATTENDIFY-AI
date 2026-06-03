@@ -1,26 +1,19 @@
 :root {
   --bg-primary: #050816;
   --bg-secondary: #0f172a;
-
   --blue-primary: #2563eb;
   --blue-light: #60a5fa;
-
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
-
   --glass-bg: rgba(255, 255, 255, 0.08);
   --glass-border: rgba(255, 255, 255, 0.15);
-
   --shadow-blue: 0 0 40px rgba(37, 99, 235, 0.3);
-
   --radius-md: 12px;
   --radius-lg: 25px;
-
   --transition: 0.3s ease;
 }
 
 /* PAGE */
-
 .student_auth_page {
   min-height: 100vh;
 
@@ -552,5 +545,181 @@
   .student_highlight_card p,
   .student_form_subtitle {
     font-size: 0.92rem;
+  }
+}
+
+
+
+
+/* =========================================
+   NEW REGISTRATION & VOICE UI STYLES
+   ========================================= */
+
+/* NAME INPUT FIELD */
+.student_form_input {
+  width: 100%;
+  height: 52px;
+  padding: 0 20px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  outline: none;
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+.student_form_input::placeholder {
+  color: var(--text-secondary);
+}
+
+.student_form_input:focus {
+  border-color: var(--blue-light);
+  box-shadow: 0 0 20px rgba(37, 99, 235, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* VOICE RECORDING SECTION */
+.student_voice_section {
+  width: 100%;
+  margin: 15px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  text-align: center;
+  backdrop-filter: blur(14px);
+}
+
+.student_voice_text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.student_voice_text span {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.student_voice_btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+  color: var(--blue-light);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.student_voice_btn:hover {
+  background: rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+}
+
+.student_voice_btn.recording {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+  70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.student_voice_success {
+  color: #4ade80;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  font-weight: 500;
+}
+
+/* BUTTON LAYOUT (Retake + Login) */
+.student_login_actions {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+  margin-top: 18px;
+}
+
+.student_retake_btn {
+  flex: 0.8;
+  height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.student_retake_btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+/* Adjust the primary button so it aligns with retake flexbox */
+.student_login_actions .student_login_btn {
+  flex: 1.2;
+  margin-top: 0; 
+}
+
+.student_login_btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(0.4);
+  box-shadow: none;
+}
+
+/* TOGGLE MODE LINK */
+.student_toggle_auth_container {
+  margin-top: 25px;
+  text-align: center;
+  width: 100%;
+}
+
+.student_toggle_auth_btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+.student_toggle_auth_btn span {
+  color: var(--blue-light);
+  font-weight: 600;
+  margin-left: 6px;
+}
+
+.student_toggle_auth_btn:hover span {
+  text-decoration: underline;
+  color: var(--blue-primary);
+}
+
+/* RESPONSIVE FIXES FOR NEW ELEMENTS */
+@media (max-width: 1366px), (max-height: 850px) {
+  .student_form_input,
+  .student_retake_btn {
+    height: 48px; 
+  }
+}
+
+@media (max-width: 480px) {
+  .student_login_actions {
+    flex-direction: column;
   }
 }
