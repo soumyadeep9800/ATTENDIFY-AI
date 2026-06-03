@@ -30,25 +30,18 @@ face_rec_model = dlib.face_recognition_model_v1(   # pyright: ignore[reportAttri
 # --------------------------------------------------
 
 def get_face_embeddings(image_np):
-
     faces = detector(image_np, 1)
-
     encodings = []
-
     for face in faces:
-
         shape = shape_predictor(image_np, face)
-
         embedding = face_rec_model.compute_face_descriptor(
             image_np,
             shape,
             1
         )
-
         encodings.append(
             np.array(embedding, dtype=np.float64)
         )
-
     return encodings
 
 
@@ -57,28 +50,21 @@ def get_face_embeddings(image_np):
 # --------------------------------------------------
 
 def train_classifier(db: Session):
-
     X = []
     y = []
-
     students = db.query(Student).all()
 
     for student in students:
-
         if student.face_embedding is None:
             continue
-
         embedding = np.asarray(
             student.face_embedding,
             dtype=np.float64
         )
-
         # FaceNet / Dlib embedding must be 128 dimensions
         if embedding.shape != (128,):
             continue
-
         X.append(embedding)
-
         y.append(
             student.student_id
         )
@@ -123,7 +109,6 @@ def predict_attendance(
     image_np,
     db: Session
 ):
-
     detected_students = {}
 
     encodings = get_face_embeddings(image_np)

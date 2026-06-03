@@ -5,7 +5,7 @@ from app.models import (Teacher,Student,Subject,SubjectStudent,AttendanceLog)
 
 from app.api.teacher_auth import router as teacher_router
 from app.api.subject_router import router as subject_router
-
+from app.api.student_auth import router as student_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 app.include_router(teacher_router)
 app.include_router(subject_router)
+app.include_router(student_router)
 
 #.\venv\Scripts\Activate
 #uvicorn main:app --reload
