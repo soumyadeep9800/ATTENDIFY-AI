@@ -4,8 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.models import (Teacher,Student,Subject,SubjectStudent,AttendanceLog)
 
 from app.api.teacher_auth import router as teacher_router
-from app.api.subject_router import router as subject_router
+from app.api.teacher_subject_router import router as teacher_subject_router
 from app.api.student_auth import router as student_router
+from app.api.student_subject import router as student_subject_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(
@@ -23,8 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(teacher_router)
-app.include_router(subject_router)
+app.include_router(teacher_subject_router)
 app.include_router(student_router)
+app.include_router(student_subject_router)
 
 #.\venv\Scripts\Activate
 #uvicorn main:app --reload

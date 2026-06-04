@@ -82,7 +82,7 @@ function ManageSubjects() {
     if (!confirmDelete) return;
     try {
       const response = await fetch(
-        `${API_URL}/subjects/${subjectId}`,
+        `${API_URL}/subjects/teacher/${subjectId}`,
         {
           method: "DELETE",
         }

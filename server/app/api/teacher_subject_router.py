@@ -32,7 +32,7 @@ def get_subjects(
     )
 
 
-@router.delete("/{subject_id}")
+@router.delete("/teacher/{subject_id}")
 def remove_subject(
     subject_id: int,
     db: Session = Depends(get_db)

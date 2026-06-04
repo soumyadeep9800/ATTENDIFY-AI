@@ -1,59 +1,94 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../css/StudentDashboard.css";
 
 function StudentDashboard() {
   const [subjectCode, setSubjectCode] = useState("");
+  const [subjects, setSubjects] = useState([]);
 
-  const subjects = [
-    {
-      subject_name: "AI & ML",
-      subject_code: "AIML101",
-      section: "A",
-      total_students: 42,
-      attendance: 89,
-    },
-    {
-      subject_name: "DBMS",
-      subject_code: "DBMS201",
-      section: "B",
-      total_students: 55,
-      attendance: 95,
-    },
-    {
-      subject_name: "DBMS",
-      subject_code: "DBMS201",
-      section: "B",
-      total_students: 55,
-      attendance: 95,
-    },
-  ];
+  const student = JSON.parse(
+    localStorage.getItem("student")
+  );
 
-  const handleEnroll = () => {
-    // Call API here
+  const handleEnroll = async () => {
+    try {
+      await axios.post(
+        "http://localhost:8000/subjects/enroll-subject",
+        {
+          student_id: student.student_id,
+          subject_code: subjectCode,
+        }
+      );
+      alert("Successfully enrolled");
+      setSubjectCode("");
+      fetchSubjects();
+    } catch (error) {
+      alert(
+        error.response?.data?.detail ||
+          "Enrollment failed"
+      );
+    }
+};
+
+  const handleUnenroll = async (
+    subjectCode
+  ) => {
+    try {
+      await axios.delete(
+        "http://localhost:8000/subjects/unenroll-subject",
+        {
+          data: {
+            student_id:
+              student.student_id,
+            subject_code: subjectCode,
+          },
+        }
+      );
+
+      alert("Successfully unenrolled");
+
+      fetchSubjects();
+    } catch (error) {
+      alert(
+        error.response?.data?.detail ||
+          "Unenrollment failed"
+      );
+    }
   };
 
-  const handleUnenroll = (subjectCode) => {
-    console.log(
-      "Unenroll from:",
-      subjectCode
-    );
+  const fetchSubjects = async () => {
+    try {
+      const response =
+        await axios.get(
+          `http://localhost:8000/subjects/student/${student.student_id}`
+        );
 
-    // Call API here
-    // DELETE /student/unenroll-subject
+      setSubjects(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
   return (
     <div className="student-dashboard">
 
-       <nav className="student-navbar">
-        <div className="navbar-logo">
-          ATTENDIFY AI
-        </div>
+    <nav className="student-navbar">
+      <div className="navbar-logo">
+        ATTENDIFY AI
+      </div>
 
-        <button className="logout-btn">
-          Logout
-        </button>
-      </nav>
+      <button className="logout-btn"
+        onClick={() => {
+          localStorage.removeItem("student");
+          window.location.href = "/";
+        }}>Logout
+      </button>
+    </nav>
 
     <div className="dashboard-content-sd">
       <header className="dashboard-header">
@@ -80,44 +115,59 @@ function StudentDashboard() {
       </div>
 
       <div className="subjects-grid-sd">
-        <h2>My Subjects</h2>
-        {subjects.map((subject, index) => (
-          <div
-            className="subject-card-sd"
-            key={index}
-          >
-            <h3>{subject.subject_name}</h3>
+        {subjects.length > 0 ? (
+          <>
+            <h2>My Subjects</h2>
 
+            {subjects.map((subject, index) => (
+              <div
+                className="subject-card-sd"
+                key={index}
+              >
+                <h3>{subject.subject_name}</h3>
+
+                <p>
+                  <strong>Code:</strong>{" "}
+                  {subject.subject_code}
+                </p>
+
+                <p>
+                  <strong>Section:</strong>{" "}
+                  {subject.section}
+                </p>
+
+                <p>
+                  <strong>Total Students:</strong>{" "}
+                  {subject.total_students}
+                </p>
+
+                <p>
+                  <strong>Your Attendance:</strong>{" "}
+                  {subject.attendance_percentage}%
+                </p>
+
+                <button
+                  className="unenroll-btn"
+                  onClick={() =>
+                    handleUnenroll(
+                      subject.subject_code
+                    )
+                  }
+                >
+                  Unenroll
+                </button>
+              </div>
+            ))}
+          </>
+        ) : (
+          <div className="no-subjects">
+            <h3>No Subjects Enrolled</h3>
             <p>
-              <strong>Code:</strong>{" "}
-              {subject.subject_code}
+              Enter a subject code above to
+              enroll in your first subject.
             </p>
-
-            <p>
-              <strong>Section:</strong>{" "}
-              {subject.section}
-            </p>
-
-            <p>
-              <strong>Total Students:</strong>{" "}
-              {subject.total_students}
-            </p>
-
-            <p>
-              <strong>Your Attendance:</strong>{" "}
-              {subject.attendance}%
-            </p>
-
-            <button
-              className="unenroll-btn"
-              onClick={() =>
-                handleUnenroll(subject.subject_code)
-              }
-            >
-              Unenroll
-            </button>
           </div>
-        ))}
+        )}
       </div>
     </div>
     </div>

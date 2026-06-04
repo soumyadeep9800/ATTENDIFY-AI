@@ -6,7 +6,6 @@ class SubjectCreate(BaseModel):
     name: str
     section: str
 
-
 class SubjectResponse(BaseModel):
     subject_id: int
     subject_code: str
@@ -16,3 +15,18 @@ class SubjectResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class EnrollSubjectRequest(BaseModel):
+    student_id: int
+    subject_code: str
+
+from pydantic import BaseModel
+
+
+class StudentSubjectResponse(BaseModel):
+    subject_id: int
+    subject_name: str
+    subject_code: str
+    section: str
+    total_students: int
+    attendance_percentage: float
