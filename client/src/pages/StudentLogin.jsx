@@ -151,33 +151,97 @@ function StudentLogin() {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
-      const recorder = new MediaRecorder(stream);
+      let mimeType = "";
+      if (
+        MediaRecorder.isTypeSupported(
+          "audio/webm;codecs=opus"
+        )
+      ) {
+        mimeType = "audio/webm;codecs=opus";
+      } else if (
+        MediaRecorder.isTypeSupported("audio/webm")
+      ) {
+        mimeType = "audio/webm";
+      } else if (
+        MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")
+      ) {
+        mimeType = "audio/ogg;codecs=opus";
+      }
+
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+
       audioChunksRef.current = [];
-      
-      recorder.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
-      
+
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/wav",
-        });
+        const actualMimeType =
+          recorder.mimeType || "audio/webm";
+
+        const audioBlob = new Blob(
+          audioChunksRef.current,
+          {
+            type: actualMimeType,
+          }
+        );
+
+        console.log(
+          "Recorder MIME:",
+          recorder.mimeType
+        );
+
+        console.log(
+          "Blob MIME:",
+          audioBlob.type
+        );
+
+        console.log(
+          "Blob Size:",
+          audioBlob.size
+        );
+
         setVoiceBlob(audioBlob);
-        stream.getTracks().forEach((track) => track.stop());
+
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
       };
-      
       mediaRecorderRef.current = recorder;
       recorder.start();
       setIsRecording(true);
+      console.log(
+        "Recording started with:",
+        recorder.mimeType
+      );
     } catch (error) {
-      console.error("Microphone access denied or error:", error);
-      alert("Could not access microphone.");
+      console.error(
+        "Microphone access denied or error:",
+        error
+      );
+      alert(
+        "Could not access microphone."
+      );
     }
   };
 
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setIsRecording(false);
+  };
+
+
+  const getExtension = (mimeType) => {
+    if (mimeType.includes("webm")) return "webm";
+    if (mimeType.includes("ogg")) return "ogg";
+    if (mimeType.includes("wav")) return "wav";
+    if (mimeType.includes("mp4")) return "m4a";
+    return "webm";
   };
 
   // --- REGISTRATION LOGIC ---
@@ -188,25 +252,48 @@ function StudentLogin() {
     }
 
     try {
-      setIsVerifying(true); 
+      setIsVerifying(true);
+      console.log("Captured Image:", capturedImage?.substring(0, 100));
+      console.log("Canvas Width:", canvasRef.current.width);
+      console.log("Canvas Height:", canvasRef.current.height);
       const imageBlob = await new Promise((resolve) => {
         canvasRef.current.toBlob(
-          (blob) => resolve(blob),
+          (blob) => {
+            console.log("Image Blob Size:", blob?.size);
+            resolve(blob);
+          },
           "image/png"
         );
       });
-
+      // const ext = voiceBlob.type === "audio/wav" ? "wav" : "webm";
       const formData = new FormData();
       formData.append("name", studentName);
       formData.append(
         "photo",
         new File([imageBlob], "student-face.png", { type: "image/png" })
       );
+
+      const ext = getExtension(voiceBlob.type);
       formData.append(
         "voice",
-        new File([voiceBlob], "student-voice.wav", { type: "audio/wav" })
+        new File(
+          [voiceBlob],
+          `student-voice.${ext}`,
+          {
+            type: voiceBlob.type,
+          }
+        )
       );
 
+      // formData.append(
+      //   "voice",
+      //   new File([voiceBlob], `student-voice.${ext}`, {
+      //     type: voiceBlob.type,
+      //   })
+      // );
+      console.log("Voice Blob Type:", voiceBlob.type);
+      console.log("Voice Blob Size:", voiceBlob.size);
+      console.log("Voice Extension:", ext);
       const response = await axios.post(
         `${API_URL}/student/register`,
         formData,
@@ -218,7 +305,7 @@ function StudentLogin() {
       );
 
       alert(response.data.message || "Registration successful");
-
+      
       // Reset Form
       setStudentName("");
       setCapturedImage(null);

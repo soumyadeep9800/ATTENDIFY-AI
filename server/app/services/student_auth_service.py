@@ -38,10 +38,19 @@ async def register_student(
         raise HTTPException(status_code=400,detail="Name is required")
     
     photo_bytes = await photo.read()
+    #print("Photo Bytes:", len(photo_bytes))
     voice_bytes = await voice.read()
+    #print("Voice Bytes:", len(voice_bytes))
     image_np = bytes_to_image(photo_bytes)
+    #print("Image Shape:", image_np.shape)
     current_embeddings = get_face_embeddings(image_np)
-
+    #cv2.imwrite("debug_face.png", image_np)
+    # print("Photo Bytes:", len(photo_bytes))
+    # print("Voice Bytes:", len(voice_bytes))
+    # print("Photo Filename:", photo.filename)
+    # print("Photo Content Type:", photo.content_type)
+    # print("Voice Filename:", voice.filename)
+    # print("Voice Content Type:", voice.content_type)
     if (
         current_embeddings is None or
         len(current_embeddings) == 0
@@ -59,7 +68,8 @@ async def register_student(
     face_embedding = current_embeddings[0]
 
     voice_embedding = get_voice_embedding(
-        voice_bytes
+        voice_bytes,
+        filename=voice.filename
     )
     if voice_embedding is None:
         raise HTTPException(
@@ -93,9 +103,9 @@ async def register_student(
             )
     # Save Student
     student = Student(
-        name=name,
-        face_embedding=face_embedding.tolist(),
-        voice_embedding=voice_embedding
+    name=name,
+    face_embedding=np.asarray(face_embedding, dtype=np.float64).tolist(),
+    voice_embedding=np.asarray(voice_embedding, dtype=np.float64).tolist()
     )
     db.add(student)
     db.commit()
