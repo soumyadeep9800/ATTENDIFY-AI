@@ -7,6 +7,7 @@ from app.api.teacher_auth import router as teacher_router
 from app.api.teacher_subject_router import router as teacher_subject_router
 from app.api.student_auth import router as student_router
 from app.api.student_subject import router as student_subject_router
+from app.api.attendance_routes import router as attendance_router
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(
@@ -27,6 +28,7 @@ app.include_router(teacher_router)
 app.include_router(teacher_subject_router)
 app.include_router(student_router)
 app.include_router(student_subject_router)
+app.include_router(attendance_router)
 
 #.\venv\Scripts\Activate
 #uvicorn main:app --reload

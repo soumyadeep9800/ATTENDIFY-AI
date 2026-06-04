@@ -16,6 +16,13 @@ function TakeAttendance() {
   const teacher = JSON.parse(localStorage.getItem("teacher"));
   const teacherId = teacher?.teacher_id;
 
+  const [faceResults, setFaceResults] = useState([]);
+  const [voiceResults, setVoiceResults] = useState([]);
+  const [isAnalyzingFace, setIsAnalyzingFace] = useState(false);
+  const [isAnalyzingVoice, setIsAnalyzingVoice] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const [audioBlob, setAudioBlob] = useState(null);
+
   useEffect(() => {
     if (teacherId) {
       fetchSubjects();
@@ -94,21 +101,15 @@ function TakeAttendance() {
   const capturePhoto = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-
     if (!video || !canvas) return;
-
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
     canvas.getContext("2d").drawImage(video, 0, 0);
-
     canvas.toBlob((blob) => {
       if (!blob) return;
-
       const file = new File([blob], `photo-${Date.now()}.jpg`, {
         type: "image/jpeg",
       });
-
       setPhotos((prev) => [...prev, file]);
     }, "image/jpeg");
   };
@@ -128,30 +129,132 @@ function TakeAttendance() {
   };
 
   const runFaceAnalysis = async () => {
+    if (!selectedSubjectId) {
+      alert("Select a subject");
+      return;
+    }
     if (photos.length === 0) {
-      alert("Please add photos first");
+      alert("Upload photos first");
       return;
     }
 
+    setIsAnalyzingFace(true);
     const formData = new FormData();
-    formData.append("subject_id", selectedSubjectId);
-
+    formData.append(
+      "subject_id",
+      selectedSubjectId
+    );
     photos.forEach((photo) => {
       formData.append("photos", photo);
     });
 
     try {
-      const response = await fetch(`${API_URL}/attendance/face`, {
-        method: "POST",
-        body: formData,
-      });
-
+      const response = await fetch(
+        `${API_URL}/attendance/face`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       const data = await response.json();
-      console.log(data);
-      alert("Face analysis completed");
+      setFaceResults(
+        data.recognized_students || []
+      );
+      alert(
+        `Detected ${
+          data.recognized_students?.length || 0
+        } students`
+      );
     } catch (error) {
       console.error(error);
-      alert("Analysis failed");
+      alert("Face analysis failed");
+    } finally {
+      setIsAnalyzingFace(false);
+    }
+  };
+
+  const startVoiceAttendance = async () => {
+    try {
+      const stream =
+        await navigator.mediaDevices.getUserMedia(
+          {
+            audio: true,
+          }
+        );
+      const recorder =
+        new MediaRecorder(stream);
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => {
+        chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, {
+          type: "audio/webm",
+        });
+        setAudioBlob(blob);
+        stream
+          .getTracks()
+          .forEach((track) =>
+            track.stop()
+          );
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      alert("Recording started");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const stopVoiceAttendance = async () => {
+    if (!mediaRecorderRef.current) return;
+    mediaRecorderRef.current.stop();
+  };
+
+  useEffect(() => {
+    if (!audioBlob) return;
+    runVoiceAnalysis();
+  }, [audioBlob]);
+
+
+  const runVoiceAnalysis = async () => {
+    if (!audioBlob) return;
+    setIsAnalyzingVoice(true);
+    const formData = new FormData();
+    formData.append(
+      "subject_id",
+      selectedSubjectId
+    );
+
+    formData.append(
+      "audio",
+      audioBlob,
+      "attendance.webm"
+    );
+    try {
+      const response = await fetch(
+        `${API_URL}/attendance/voice`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      setVoiceResults(
+        data.recognized_students || []
+      );
+
+      alert(
+        `Voice matched ${
+          data.recognized_students?.length || 0
+        } students`
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Voice analysis failed");
+    } finally {
+      setIsAnalyzingVoice(false);
     }
   };
 
@@ -259,9 +362,21 @@ function TakeAttendance() {
             Recommended after face analysis for improved accuracy.
           </div>
 
-          <button className="primary-btn full-btn">
-            Start Voice Attendance
-          </button>
+          <div className="btn-group">
+            <button
+              className="primary-btn"
+              onClick={startVoiceAttendance}
+            >
+              Start Recording
+            </button>
+
+            <button
+              className="secondary-btn"
+              onClick={stopVoiceAttendance}
+            >
+              Stop & Analyze
+            </button>
+          </div>
         </div>
       </section>
 
@@ -291,6 +406,30 @@ function TakeAttendance() {
           </div>
         </div>
       </section>
+
+      {faceResults.length > 0 && (
+        <section className="attendance-card">
+          <h2>Face Attendance Results</h2>
+
+          {faceResults.map((student) => (
+            <p key={student.student_id}>
+              {student.name}
+            </p>
+          ))}
+        </section>
+      )}
+
+      {voiceResults.length > 0 && (
+        <section className="attendance-card">
+          <h2>Voice Attendance Results</h2>
+
+          {voiceResults.map((student) => (
+            <p key={student.student_id}>
+              {student.name}
+            </p>
+          ))}
+        </section>
+      )}
 
       {showPhotoModal && (
         <div className="photo-modal" onClick={handleCloseModal}>
