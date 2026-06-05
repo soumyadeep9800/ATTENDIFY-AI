@@ -13,7 +13,8 @@ from app.schemas.attendance_schema import (
     AttendanceSubmitRequest
 )
 from app.services.attendance_service import (
-    submit_attendance_logs
+    submit_attendance_logs,
+    get_attendance_records
 )
 
 
@@ -56,5 +57,15 @@ async def submit_attendance(
 ):
     return await submit_attendance_logs(
         request,
+        db
+    )
+
+@router.get("/records/{teacher_id}")
+async def attendance_records(
+    teacher_id: int,
+    db: Session = Depends(get_db)
+):
+    return await get_attendance_records(
+        teacher_id,
         db
     )

@@ -1,7 +1,9 @@
 from datetime import datetime
 import cv2
 import numpy as np
+from zoneinfo import ZoneInfo
 from app.models.student import Student
+from app.models.subject import Subject
 from app.models.subject_student import SubjectStudent
 from app.models.attendance_log import AttendanceLog
 
@@ -250,3 +252,84 @@ async def submit_attendance_logs(
         "message": "Attendance Saved",
         "saved_count": saved_count
     }
+
+
+
+async def get_attendance_records(
+    teacher_id: int,
+    db
+):
+    records = (
+        db.query(
+            AttendanceLog,
+            Student.name.label(
+                "student_name"
+            ),
+            Subject.name.label(
+                "subject_name"
+            )
+        )
+        .join(
+            Student,
+            AttendanceLog.student_id
+            == Student.student_id
+        )
+        .join(
+            Subject,
+            AttendanceLog.subject_id
+            == Subject.subject_id
+        )
+        .filter(
+            Subject.teacher_id
+            == teacher_id
+        )
+        .order_by(
+            AttendanceLog.timestamp.desc()
+        )
+        .all()
+    )
+
+    result = []
+
+    for (
+        attendance,
+        student_name,
+        subject_name
+    ) in records:
+
+        ist_time = (
+            attendance.timestamp
+            .astimezone(
+                ZoneInfo(
+                    "Asia/Kolkata"
+                )
+            )
+        )
+
+        result.append({
+            "student_id":
+                attendance.student_id,
+
+            "student_name":
+                student_name,
+
+            "subject_name":
+                subject_name,
+
+            "date":
+                ist_time.strftime(
+                    "%Y-%m-%d"
+                ),
+
+            "time":
+                ist_time.strftime(
+                    "%I:%M %p"
+                ),
+
+            "status":
+                "Present"
+                if attendance.is_present
+                else "Absent"
+        })
+
+    return result

@@ -6,10 +6,41 @@ import "../css/StudentDashboard.css";
 function StudentDashboard() {
   const [subjectCode, setSubjectCode] = useState("");
   const [subjects, setSubjects] = useState([]);
-
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const student = JSON.parse(
     localStorage.getItem("student")
   );
+
+  useEffect(() => {
+    const studentData =
+      localStorage.getItem("student");
+
+    if (!studentData) {
+      navigate("/student-login");
+      return;
+    }
+
+    try {
+      const parsedStudent =
+        JSON.parse(studentData);
+
+      if (!parsedStudent.student_id) {
+        localStorage.removeItem(
+          "student"
+        );
+        navigate("/student-login");
+        return;
+      }
+
+      setLoading(false);
+    } catch (error) {
+      localStorage.removeItem(
+        "student"
+      );
+      navigate("/student-login");
+    }
+  }, [navigate]);
 
   const handleEnroll = async () => {
     try {
@@ -71,8 +102,14 @@ function StudentDashboard() {
   };
 
   useEffect(() => {
-    fetchSubjects();
+    if (student?.student_id) {
+      fetchSubjects();
+    }
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="student-dashboard">
