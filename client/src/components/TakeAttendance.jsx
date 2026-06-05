@@ -16,12 +16,15 @@ function TakeAttendance() {
   const teacher = JSON.parse(localStorage.getItem("teacher"));
   const teacherId = teacher?.teacher_id;
 
+  const [attendanceResults, setAttendanceResults] = useState([]);
   const [faceResults, setFaceResults] = useState([]);
   const [voiceResults, setVoiceResults] = useState([]);
   const [isAnalyzingFace, setIsAnalyzingFace] = useState(false);
   const [isAnalyzingVoice, setIsAnalyzingVoice] = useState(false);
   const mediaRecorderRef = useRef(null);
   const [audioBlob, setAudioBlob] = useState(null);
+  const [photoCaptured, setPhotoCaptured] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
     if (teacherId) {
@@ -111,7 +114,12 @@ function TakeAttendance() {
         type: "image/jpeg",
       });
       setPhotos((prev) => [...prev, file]);
+      setPhotoCaptured(true);
+      setTimeout(() => {
+        setPhotoCaptured(false);
+      }, 2000);
     }, "image/jpeg");
+    
   };
 
   const handleDone = () => {
@@ -126,6 +134,25 @@ function TakeAttendance() {
 
   const clearPhotos = () => {
     setPhotos([]);
+  };
+
+  const mergeAttendanceResults = (
+    faceStudents = [],
+    voiceStudents = []
+  ) => {
+    const map = new Map();
+
+    [...faceStudents, ...voiceStudents].forEach(
+      (student) => {
+        map.set(student.student_id, {
+          student_id: student.student_id,
+          name: student.name,
+          subject_id: Number(selectedSubjectId),
+          is_present: true,
+        });
+      }
+    );
+    return Array.from(map.values());
   };
 
   const runFaceAnalysis = async () => {
@@ -157,8 +184,16 @@ function TakeAttendance() {
         }
       );
       const data = await response.json();
-      setFaceResults(
-        data.recognized_students || []
+      const students =
+        data.recognized_students || [];
+
+      setFaceResults(students);
+
+      setAttendanceResults(
+        mergeAttendanceResults(
+          students,
+          voiceResults
+        )
       );
       alert(
         `Detected ${
@@ -170,10 +205,12 @@ function TakeAttendance() {
       alert("Face analysis failed");
     } finally {
       setIsAnalyzingFace(false);
+      setPhotos([]);
     }
   };
 
   const startVoiceAttendance = async () => {
+    setIsRecording(true);
     try {
       const stream =
         await navigator.mediaDevices.getUserMedia(
@@ -199,6 +236,7 @@ function TakeAttendance() {
           .forEach((track) =>
             track.stop()
           );
+          setIsRecording(false);
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
@@ -241,8 +279,13 @@ function TakeAttendance() {
         }
       );
       const data = await response.json();
-      setVoiceResults(
-        data.recognized_students || []
+      const students = data.recognized_students || [];
+      setVoiceResults(students);
+      setAttendanceResults(
+        mergeAttendanceResults(
+          faceResults,
+          students
+        )
       );
 
       alert(
@@ -257,6 +300,42 @@ function TakeAttendance() {
       setIsAnalyzingVoice(false);
     }
   };
+
+  const submitAttendance = async () => {
+    if (attendanceResults.length === 0) {
+      alert("No attendance data");
+      return;
+    }
+    try {
+      const response = await fetch(
+        `${API_URL}/attendance/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            students: attendanceResults,
+          }),
+        }
+      );
+      const data = await response.json();
+      alert(
+        `${data.message}\nSaved: ${data.saved_count}`
+      );
+
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Failed to save attendance"
+      );
+    }
+  };
+
+  const selectedSubject = subjects.find(
+    (sub) => sub.subject_id === Number(selectedSubjectId)
+  );
 
   return (
     <div className="attendance-page">
@@ -339,8 +418,19 @@ function TakeAttendance() {
             </button>
           </div>
 
-          <button className="analysis-btn" onClick={runFaceAnalysis}>
-            Run Face Analysis
+          <button
+            className="analysis-btn"
+            onClick={runFaceAnalysis}
+            disabled={isAnalyzingFace}
+          >
+            {isAnalyzingFace ? (
+              <>
+                <span className="loader"></span>
+                Analyzing Faces...
+              </>
+            ) : (
+              "Run Face Analysis"
+            )}
           </button>
         </div>
 
@@ -361,6 +451,21 @@ function TakeAttendance() {
           <div className="info-box subtle">
             Recommended after face analysis for improved accuracy.
           </div>
+          {isRecording && (
+            <div className="recording-ui">
+              <div className="recording-wave">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+              <div className="recording-text">
+                🎤 Recording in Progress...
+              </div>
+            </div>
+          )}
 
           <div className="btn-group">
             <button
@@ -373,61 +478,72 @@ function TakeAttendance() {
             <button
               className="secondary-btn"
               onClick={stopVoiceAttendance}
+              disabled={isAnalyzingVoice}
             >
-              Stop & Analyze
+              {isAnalyzingVoice ? (
+                <>
+                  <span className="loader"></span>
+                  Analyzing Voice...
+                </>
+              ) : (
+                "Stop & Analyze"
+              )}
             </button>
           </div>
         </div>
       </section>
 
-      <section className="attendance-card">
-        <div className="section-title-wrap">
-          <div>
-            <span className="section-kicker">Realtime Overview</span>
-            <h2>Session Information</h2>
-          </div>
-          <span className="mini-tag">Live stats</span>
-        </div>
-
-        <div className="stats-grid">
-          <div className="stat-box">
-            <p>Total Students</p>
-            <span>--</span>
-          </div>
-
-          <div className="stat-box">
-            <p>Detected Faces</p>
-            <span>--</span>
-          </div>
-
-          <div className="stat-box">
-            <p>Present Students</p>
-            <span>--</span>
-          </div>
-        </div>
-      </section>
-
-      {faceResults.length > 0 && (
+      {attendanceResults.length > 0 && (
         <section className="attendance-card">
-          <h2>Face Attendance Results</h2>
+          <h2>Attendance Results</h2>
 
-          {faceResults.map((student) => (
-            <p key={student.student_id}>
-              {student.name}
-            </p>
-          ))}
-        </section>
-      )}
+          <table className="attendance-table">
+            <thead>
+              <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Subject Name</th>
+                <th>Present</th>
+              </tr>
+            </thead>
+            <tbody>
+              {attendanceResults.map(
+                (student) => (
+                  <tr
+                    key={student.student_id}
+                  >
+                    <td>
+                      {student.student_id}
+                    </td>
 
-      {voiceResults.length > 0 && (
-        <section className="attendance-card">
-          <h2>Voice Attendance Results</h2>
+                    <td>
+                      {student.name}
+                    </td>
 
-          {voiceResults.map((student) => (
-            <p key={student.student_id}>
-              {student.name}
-            </p>
-          ))}
+                    <td>
+                      {selectedSubject?.name || "-"}
+                    </td>
+
+                    <td>
+                      {student.is_present
+                        ? "True"
+                        : "False"}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+
+          <button
+            className="primary-btn"
+            onClick={submitAttendance}
+            style={{
+              marginTop: "20px",
+            }}
+          >
+            Submit Attendance
+          </button>
         </section>
       )}
 
@@ -478,11 +594,19 @@ function TakeAttendance() {
               style={{ display: "none" }}
             />
 
-            <button type="button" className="capture-btn" onClick={capturePhoto}>
+           <button
+              type="button"
+              className="capture-btn"
+              onClick={capturePhoto}
+            >
               Capture Photo
             </button>
 
-            <p>Photos Selected: {photos.length}</p>
+            {photoCaptured && (
+              <div className="capture-success">
+                ✓ Photo Captured Successfully
+              </div>
+            )}
 
             <button
               className="primary-btn"
@@ -499,3 +623,32 @@ function TakeAttendance() {
 }
 
 export default TakeAttendance;
+
+
+
+{/* <section className="attendance-card">
+        <div className="section-title-wrap">
+          <div>
+            <span className="section-kicker">Realtime Overview</span>
+            <h2>Session Information</h2>
+          </div>
+          <span className="mini-tag">Live stats</span>
+        </div>
+
+        <div className="stats-grid">
+          <div className="stat-box">
+            <p>Total Students</p>
+            <span>--</span>
+          </div>
+
+          <div className="stat-box">
+            <p>Detected Faces</p>
+            <span>--</span>
+          </div>
+
+          <div className="stat-box">
+            <p>Present Students</p>
+            <span>--</span>
+          </div>
+        </div>
+      </section> */}

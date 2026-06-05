@@ -574,6 +574,9 @@ body {
   cursor: pointer;
   transition: all 0.25s ease;
 }
+.capture-btn{
+  margin-bottom: .8rem;
+}
 
 .camera-btn-open {
   background: #eef2ff;
@@ -678,4 +681,184 @@ body {
   .gallery-input::file-selector-button {
     width: 100%;
   }
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.attendance-table thead {
+  background: linear-gradient(
+    135deg,
+    var(--blue-primary),
+    var(--blue-light)
+  );
+}
+
+.attendance-table th {
+  padding: 14px;
+  text-align: left;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.attendance-table td {
+  padding: 14px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.attendance-table tbody tr {
+  transition: 0.3s ease;
+}
+
+.attendance-table tbody tr:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.attendance-submit-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.present-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.attendance-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.attendance-count {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--blue-light);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .attendance-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .attendance-submit-wrap {
+    justify-content: stretch;
+  }
+
+  .attendance-submit-wrap button {
+    width: 100%;
+  }
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.capture-success {
+  margin-top: 10px;
+  color: #22c55e;
+  font-weight: 700;
+  text-align: center;
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.recording-ui {
+  margin-top: 15px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  text-align: center;
+}
+
+.recording-wave {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+}
+
+.recording-wave span {
+  width: 4px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 20px;
+  animation: voiceWave 1s infinite ease-in-out;
+}
+
+.recording-wave span:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.recording-wave span:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.recording-wave span:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.recording-wave span:nth-child(5) {
+  animation-delay: 0.4s;
+}
+
+@keyframes voiceWave {
+  0%, 100% {
+    height: 10px;
+  }
+
+  50% {
+    height: 28px;
+  }
+}
+
+.recording-text {
+  margin-top: 8px;
+  font-weight: 600;
+  color: #ef4444;
 }

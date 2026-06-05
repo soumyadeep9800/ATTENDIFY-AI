@@ -9,6 +9,14 @@ from app.services.attendance_service import (
     process_face_attendance,
     process_voice_attendance
 )
+from app.schemas.attendance_schema import (
+    AttendanceSubmitRequest
+)
+from app.services.attendance_service import (
+    submit_attendance_logs
+)
+
+
 
 router = APIRouter(
     prefix="/attendance",
@@ -38,5 +46,15 @@ async def voice_attendance(
     return await process_voice_attendance(
         subject_id,
         audio,
+        db
+    )
+
+@router.post("/submit")
+async def submit_attendance(
+    request: AttendanceSubmitRequest,
+    db: Session = Depends(get_db)
+):
+    return await submit_attendance_logs(
+        request,
         db
     )

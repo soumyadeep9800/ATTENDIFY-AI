@@ -7,7 +7,9 @@ from app.models.attendance_log import AttendanceLog
 
 from app.ml.face_service import get_face_embeddings
 from app.ml.voice_service import get_voice_embedding
-
+from app.schemas.attendance_schema import (
+    AttendanceSubmitRequest
+)
 
 async def process_face_attendance(
     subject_id,
@@ -138,39 +140,13 @@ async def process_face_attendance(
         for s in recognized_students
     }.values()
 
-    for student in unique_students:
-
-        existing = (
-            db.query(AttendanceLog)
-            .filter(
-                AttendanceLog.subject_id
-                == subject_id,
-                AttendanceLog.student_id
-                == student.student_id
-            )
-            .first()
-        )
-
-        if not existing:
-
-            attendance = AttendanceLog(
-                timestamp=datetime.utcnow(),
-                subject_id=subject_id,
-                student_id=student.student_id,
-                is_present=True
-            )
-
-            db.add(attendance)
-
-    db.commit()
-
     return {
         "recognized_students": [
             {
-                "student_id":
-                    student.student_id,
-                "name":
-                    student.name
+                "student_id": student.student_id,
+                "name": student.name,
+                "subject_id": subject_id,
+                "is_present": True
             }
             for student in unique_students
         ]
@@ -225,38 +201,52 @@ async def process_voice_attendance(
                 student
             )
 
-            existing = (
-                db.query(AttendanceLog)
-                .filter(
-                    AttendanceLog.subject_id
-                    == subject_id,
-                    AttendanceLog.student_id
-                    == student.student_id
-                )
-                .first()
-            )
-
-            if not existing:
-
-                attendance = AttendanceLog(
-                    timestamp=datetime.utcnow(),
-                    subject_id=subject_id,
-                    student_id=student.student_id,
-                    is_present=True
-                )
-
-                db.add(attendance)
-
-    db.commit()
-
     return {
         "recognized_students": [
             {
-                "student_id":
-                    student.student_id,
-                "name":
-                    student.name
+                "student_id": student.student_id,
+                "name": student.name,
+                "subject_id": subject_id,
+                "is_present": True
             }
             for student in recognized_students
         ]
+    }
+
+
+async def submit_attendance_logs(
+    request: AttendanceSubmitRequest,
+    db
+):
+    saved_count = 0
+    for student in request.students:
+        existing = (
+            db.query(AttendanceLog)
+            .filter(
+                AttendanceLog.subject_id == student.subject_id,
+                AttendanceLog.student_id == student.student_id,
+                AttendanceLog.timestamp >= datetime.utcnow().date()
+            ).first()
+        )
+
+        # Update existing attendance
+        if existing:
+            existing.timestamp = datetime.utcnow()
+            existing.is_present = student.is_present
+
+            saved_count += 1
+            continue
+        # Create new attendance
+        attendance = AttendanceLog(
+            timestamp=datetime.utcnow(),
+            subject_id=student.subject_id,
+            student_id=student.student_id,
+            is_present=student.is_present
+        )
+        db.add(attendance)
+        saved_count += 1
+    db.commit()
+    return {
+        "message": "Attendance Saved",
+        "saved_count": saved_count
     }
