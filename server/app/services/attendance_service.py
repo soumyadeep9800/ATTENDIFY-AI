@@ -131,7 +131,7 @@ async def process_face_attendance(
 
             if (
                 best_student is not None
-                and best_distance < 0.6
+                and best_distance < 0.45
             ):
                 recognized_students.append(
                     best_student
