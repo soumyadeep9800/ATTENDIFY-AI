@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../css/ManageSubject.css";
+import { toast } from "react-toastify";
 
 function ManageSubjects() {
   const API_URL = "http://localhost:8000";
@@ -27,7 +28,7 @@ function ManageSubjects() {
       setSubjects(data);
     } catch (error) {
       console.error(error);
-      alert("Failed to load subjects");
+      toast.error("Failed to load subjects");
     }
   };
 
@@ -37,7 +38,7 @@ function ManageSubjects() {
       !subjectCode ||
       !section
     ) {
-      alert("Please fill all fields");
+      toast.info("Please fill all fields");
       return;
     }
     try {
@@ -67,10 +68,10 @@ function ManageSubjects() {
       setSubjectName("");
       setSubjectCode("");
       setSection("");
-      alert("Subject created successfully");
+      toast.success("Subject created successfully");
     } catch (error) {
       console.error(error);
-      alert("Failed to create subject");
+      toast.error("Failed to create subject");
     }
   };
 
@@ -99,22 +100,20 @@ function ManageSubjects() {
         )
       );
 
-      alert(
-        "Subject deleted successfully"
-      );
+      toast.success("Subject deleted successfully");
     } catch (error) {
       console.error(error);
-      alert("Failed to delete subject");
+      toast.error("Failed to delete subject");
     }
   };
 
   const handleCopyCode = (code) => {
     navigator.clipboard.writeText(code);
-    alert("Subject code copied successfully");
+    toast.success("Subject code copied successfully");
   };
 
   const handleShowQR = (code) => {
-    alert(
+    toast.info(
       `Future QR Code Feature\nEnrollment Code: ${code}`
     );
   };

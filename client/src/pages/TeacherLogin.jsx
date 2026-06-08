@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../css/TeacherLogin.css";
+import { toast } from "react-toastify";
 
 function TeacherLogin() {
   const API_URL = "http://localhost:8000";
@@ -19,7 +20,7 @@ function TeacherLogin() {
       setLoading(true);
       if (isRegister) {
         if (password !== confirmPassword) {
-          alert("Passwords do not match");
+          toast.error("Passwords do not match");
           return;
         }
         await axios.post(
@@ -30,7 +31,7 @@ function TeacherLogin() {
             password
           }
         );
-        alert("Registration Successful");
+        toast.success("Registration Successful");
         setIsRegister(false);
         return;
       }
@@ -50,10 +51,11 @@ function TeacherLogin() {
         JSON.stringify(res.data)
       );
       navigate("/teacher-dashboard");
+      toast.success("Login Successfully!")
 
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         error?.response?.data?.detail || "Something went wrong"
       );
     } finally {

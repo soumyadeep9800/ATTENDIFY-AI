@@ -3,6 +3,7 @@ import React, {
   useEffect,
 } from "react";
 import "../css/AttendanceRecords.css";
+import { toast } from "react-toastify";
 
 function AttendanceRecords() {
   const API_URL = "http://localhost:8000";
@@ -185,6 +186,7 @@ function AttendanceRecords() {
     window.URL.revokeObjectURL(
       url
     );
+    toast.success("CSV Generated Successfully!")
   };
 
   return (

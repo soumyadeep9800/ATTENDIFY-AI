@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../css/TakeAttendance.css";
+import { toast } from "react-toastify";
 
 function TakeAttendance() {
   const videoRef = useRef(null);
@@ -58,7 +59,7 @@ function TakeAttendance() {
       setSubjects(data);
     } catch (error) {
       console.error(error);
-      alert("Failed to load subjects");
+      toast.error("Failed to load subjects");
     }
   };
 
@@ -98,7 +99,7 @@ function TakeAttendance() {
 
   const handleStartSession = () => {
     if (!selectedSubjectId) {
-      alert("Please select a subject");
+      toast.info("Please select a subject");
       return;
     }
 
@@ -128,7 +129,7 @@ function TakeAttendance() {
       setCameraStream(stream);
     } catch (err) {
       console.error(err);
-      alert("Unable to access camera");
+      toast.warn("Unable to access camera");
     }
   };
 
@@ -211,11 +212,11 @@ function TakeAttendance() {
 
   const runFaceAnalysis = async () => {
     if (!selectedSubjectId) {
-      alert("Select a subject");
+      toast.info("Select a subject");
       return;
     }
     if (photos.length === 0) {
-      alert("Upload photos first");
+      toast.info("Upload photos first");
       return;
     }
 
@@ -249,14 +250,14 @@ function TakeAttendance() {
           voiceResults
         )
       );
-      alert(
+      toast.success(
         `Detected ${
           data.recognized_students?.length || 0
         } students`
       );
     } catch (error) {
       console.error(error);
-      alert("Face analysis failed");
+      toast.error("Face analysis failed");
     } finally {
       setIsAnalyzingFace(false);
       setPhotos([]);
@@ -294,7 +295,7 @@ function TakeAttendance() {
       };
       recorder.start();
       mediaRecorderRef.current = recorder;
-      alert("Recording started");
+      toast.info("Recording started");
     } catch (err) {
       console.error(err);
     }
@@ -342,14 +343,14 @@ function TakeAttendance() {
         )
       );
 
-      alert(
+      toast.info(
         `Voice matched ${
           data.recognized_students?.length || 0
         } students`
       );
     } catch (error) {
       console.error(error);
-      alert("Voice analysis failed");
+      toast.error("Voice analysis failed");
     } finally {
       setIsAnalyzingVoice(false);
     }
@@ -357,7 +358,7 @@ function TakeAttendance() {
 
   const submitAttendance = async () => {
     if (!selectedSubjectId) {
-    alert("Select a subject");
+    toast.info("Select a subject");
     return;
   }
     try {
@@ -375,13 +376,13 @@ function TakeAttendance() {
         }
       );
       const data = await response.json();
-      alert(
+      toast.success(
         `${data.message}\nSaved: ${data.saved_count}`
       );
 
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         "Failed to save attendance"
       );
     }

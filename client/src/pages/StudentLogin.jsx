@@ -2,6 +2,7 @@ import "../css/StudentLogin.css";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function StudentLogin() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function StudentLogin() {
       }, 100);
     } catch (error) {
       console.error(error);
-      alert(`${error.name}: ${error.message}`);
+      toast.error(`${error.name}: ${error.message}`);
       setCameraOpen(false);
     }
   };
@@ -78,7 +79,7 @@ function StudentLogin() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) {
-      alert("Camera not ready");
+      toast.error("Camera not ready");
       return;
     }
 
@@ -99,7 +100,7 @@ function StudentLogin() {
   // --- LOGIN LOGIC ---
   const handleVerifyLogin = async () => {
     if (!capturedImage || !canvasRef.current) {
-      alert("Please capture your photo first");
+      toast.info("Please capture your photo first");
       return;
     }
     try {
@@ -110,7 +111,7 @@ function StudentLogin() {
         }, "image/png");
       });
       if (!blob) {
-        alert("Image conversion failed");
+        toast.error("Image conversion failed");
         return;
       }
       const file = new File([blob], "student-face.png", {
@@ -132,14 +133,14 @@ function StudentLogin() {
       }
       if (data.success) {
         localStorage.setItem("student", JSON.stringify(data.student));
-        alert("Login successful");
+        toast.success("Login successful");
         navigate("/student-dashboard");
       } else {
-        alert(data.message || "Face not recognized");
+        toast.error(data.message || "Face not recognized");
       }
     } catch (error) {
       console.error(error);
-      alert(error.message || "Login failed");
+      toast.error(error.message || "Login failed");
     } finally {
       setIsVerifying(false);
     }
@@ -220,11 +221,8 @@ function StudentLogin() {
         recorder.mimeType
       );
     } catch (error) {
-      console.error(
-        "Microphone access denied or error:",
-        error
-      );
-      alert(
+      console.error("Microphone access denied or error:",error);
+      toast.info(
         "Could not access microphone."
       );
     }
@@ -247,7 +245,7 @@ function StudentLogin() {
   // --- REGISTRATION LOGIC ---
   const handleRegister = async () => {
     if (!studentName || !capturedImage || !voiceBlob) {
-      alert("Name, face, and voice are required to register");
+      toast.error("Name, face, and voice are required to register");
       return;
     }
 
@@ -304,7 +302,7 @@ function StudentLogin() {
         }
       );
 
-      alert(response.data.message || "Registration successful");
+      toast.success(response.data.message || "Registration successful");
       
       // Reset Form
       setStudentName("");
@@ -314,7 +312,7 @@ function StudentLogin() {
 
     } catch (error) {
       console.error(error);
-      alert(
+      toast.error(
         error.response?.data?.detail ||
           error.message ||
           "Registration failed"
