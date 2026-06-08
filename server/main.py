@@ -42,8 +42,8 @@ def home():
 # During login, a new facial embedding is generated from the uploaded image and compared against all stored embeddings using Euclidean distance.
 # The student with the minimum distance is selected, and authentication succeeds only if the distance is below a predefined threshold.
 
-
-#For attend whenteacher upload image
-# The system uses Dlib to generate 128-dimensional face embeddings. For authentication, nearest-neighbor matching with Euclidean distance is used.
-# For classroom attendance, an SVM classifier is trained on registered student embeddings to identify multiple students efficiently,
-# followed by distance-based verification to reduce false positives.
+# The system uses Dlib's pretrained deep metric learning model. First, faces are detected using Dlib's frontal face detector.
+# Facial landmarks are then extracted to align the face. The aligned face is passed through Dlib's ResNet-based face recognition network,
+# which generates a 128-dimensional embedding vector. This embedding represents the facial features in a numerical feature space.
+# During authentication or attendance, newly generated embeddings are compared against stored embeddings using Euclidean distance.
+# If the distance falls below a predefined threshold, the identity is considered a match.

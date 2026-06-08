@@ -26,6 +26,8 @@ function TakeAttendance() {
   const [photoCaptured, setPhotoCaptured] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
 
+  const [subjectStudents, setSubjectStudents] = useState([]);
+
   useEffect(() => {
     if (teacherId) {
       fetchSubjects();
@@ -42,6 +44,12 @@ function TakeAttendance() {
     return () => stopCamera();
   }, [showPhotoModal]);
 
+  useEffect(() => {
+  if (selectedSubjectId) {
+    fetchSubjectStudents();
+  }
+}, [selectedSubjectId]);
+
   const fetchSubjects = async () => {
     try {
       const response = await fetch(`${API_URL}/subjects/teacher/${teacherId}`);
@@ -51,6 +59,40 @@ function TakeAttendance() {
     } catch (error) {
       console.error(error);
       alert("Failed to load subjects");
+    }
+  };
+
+  const fetchSubjectStudents = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/subjects/${selectedSubjectId}/students`
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const data = await response.json();
+
+      setSubjectStudents(data);
+
+      const initialAttendance =
+        data.map((student) => ({
+          student_id:
+            student.student_id,
+          name:
+            student.name,
+          subject_id:
+            Number(selectedSubjectId),
+          is_present: false,
+        }));
+
+      setAttendanceResults(
+        initialAttendance
+      );
+
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -140,19 +182,31 @@ function TakeAttendance() {
     faceStudents = [],
     voiceStudents = []
   ) => {
-    const map = new Map();
 
-    [...faceStudents, ...voiceStudents].forEach(
-      (student) => {
-        map.set(student.student_id, {
-          student_id: student.student_id,
-          name: student.name,
-          subject_id: Number(selectedSubjectId),
-          is_present: true,
-        });
-      }
+    const presentIds = new Set();
+    [
+      ...faceStudents,
+      ...voiceStudents,
+    ].forEach((student) => {
+      presentIds.add(
+        student.student_id
+      );
+    });
+
+    return subjectStudents.map(
+      (student) => ({
+        student_id:
+          student.student_id,
+        name:
+          student.name,
+        subject_id:
+          Number(selectedSubjectId),
+        is_present:
+          presentIds.has(
+            student.student_id
+          ),
+      })
     );
-    return Array.from(map.values());
   };
 
   const runFaceAnalysis = async () => {
@@ -302,10 +356,10 @@ function TakeAttendance() {
   };
 
   const submitAttendance = async () => {
-    if (attendanceResults.length === 0) {
-      alert("No attendance data");
-      return;
-    }
+    if (!selectedSubjectId) {
+    alert("Select a subject");
+    return;
+  }
     try {
       const response = await fetch(
         `${API_URL}/attendance/submit`,
@@ -493,7 +547,7 @@ function TakeAttendance() {
         </div>
       </section>
 
-      {attendanceResults.length > 0 && (
+      {selectedSubjectId && (
         <section className="attendance-card">
           <h2>Attendance Results</h2>
 
@@ -623,32 +677,3 @@ function TakeAttendance() {
 }
 
 export default TakeAttendance;
-
-
-
-{/* <section className="attendance-card">
-        <div className="section-title-wrap">
-          <div>
-            <span className="section-kicker">Realtime Overview</span>
-            <h2>Session Information</h2>
-          </div>
-          <span className="mini-tag">Live stats</span>
-        </div>
-
-        <div className="stats-grid">
-          <div className="stat-box">
-            <p>Total Students</p>
-            <span>--</span>
-          </div>
-
-          <div className="stat-box">
-            <p>Detected Faces</p>
-            <span>--</span>
-          </div>
-
-          <div className="stat-box">
-            <p>Present Students</p>
-            <span>--</span>
-          </div>
-        </div>
-      </section> */}

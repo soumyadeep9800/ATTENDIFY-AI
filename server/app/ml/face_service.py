@@ -1,5 +1,4 @@
 # Face Recognition Service
-
 import dlib
 import numpy as np
 import face_recognition_models
@@ -49,126 +48,126 @@ def get_face_embeddings(image_np):
 # Train SVM Classifier
 # --------------------------------------------------
 
-def train_classifier(db: Session):
-    X = []
-    y = []
-    students = db.query(Student).all()
+# def train_classifier(db: Session):
+#     X = []
+#     y = []
+#     students = db.query(Student).all()
 
-    for student in students:
-        if student.face_embedding is None:
-            continue
-        embedding = np.asarray(
-            student.face_embedding,
-            dtype=np.float64
-        )
-        # FaceNet / Dlib embedding must be 128 dimensions
-        if embedding.shape != (128,):
-            continue
-        X.append(embedding)
-        y.append(
-            student.student_id
-        )
+#     for student in students:
+#         if student.face_embedding is None:
+#             continue
+#         embedding = np.asarray(
+#             student.face_embedding,
+#             dtype=np.float64
+#         )
+#         # FaceNet / Dlib embedding must be 128 dimensions
+#         if embedding.shape != (128,):
+#             continue
+#         X.append(embedding)
+#         y.append(
+#             student.student_id
+#         )
 
-    if len(X) == 0:
-        return None
+#     if len(X) == 0:
+#         return None
 
-    X_train = np.array(X)
-    y_train = np.array(y)
+#     X_train = np.array(X)
+#     y_train = np.array(y)
 
-    unique_students = set(y)
+#     unique_students = set(y)
 
-    # Only one registered student
-    if len(unique_students) < 2:
+#     # Only one registered student
+#     if len(unique_students) < 2:
 
-        return {
-            "clf": None,
-            "X": X_train,
-            "y": list(y_train)
-        }
+#         return {
+#             "clf": None,
+#             "X": X_train,
+#             "y": list(y_train)
+#         }
 
-    clf = SVC(
-        kernel="linear",
-        probability=True,
-        class_weight="balanced"
-    )
+#     clf = SVC(
+#         kernel="linear",
+#         probability=True,
+#         class_weight="balanced"
+#     )
 
-    clf.fit(X_train, y_train)
+#     clf.fit(X_train, y_train)
 
-    return {
-        "clf": clf,
-        "X": X_train,
-        "y": list(y_train)
-    }
+#     return {
+#         "clf": clf,
+#         "X": X_train,
+#         "y": list(y_train)
+#     }
 
 
-# --------------------------------------------------
-# Predict Attendance
-# --------------------------------------------------
+# # --------------------------------------------------
+# # Predict Attendance
+# # --------------------------------------------------
 
-def predict_attendance(
-    image_np,
-    db: Session
-):
-    detected_students = {}
+# def predict_attendance(
+#     image_np,
+#     db: Session
+# ):
+#     detected_students = {}
 
-    encodings = get_face_embeddings(image_np)
+#     encodings = get_face_embeddings(image_np)
 
-    model_data = train_classifier(db)
+#     model_data = train_classifier(db)
 
-    if model_data is None:
-        return detected_students
+#     if model_data is None:
+#         return detected_students
 
-    clf = model_data["clf"]
-    X_train = model_data["X"]
-    y_train = model_data["y"]
+#     clf = model_data["clf"]
+#     X_train = model_data["X"]
+#     y_train = model_data["y"]
 
-    all_students = sorted(
-        list(set(y_train))
-    )
+#     all_students = sorted(
+#         list(set(y_train))
+#     )
 
-    if len(all_students) == 0:
-        return detected_students
+#     if len(all_students) == 0:
+#         return detected_students
 
-    for encoding in encodings:
+#     for encoding in encodings:
 
-        # --------------------------
-        # Predict Student
-        # --------------------------
+#         # --------------------------
+#         # Predict Student
+#         # --------------------------
 
-        if clf is not None:
+#         if clf is not None:
 
-            predicted_id = int(
-                clf.predict(
-                    encoding.reshape(1, -1)
-                )[0]
-            )
+#             predicted_id = int(
+#                 clf.predict(
+#                     encoding.reshape(1, -1)
+#                 )[0]
+#             )
 
-        else:
+#         else:
 
-            predicted_id = int(
-                all_students[0]
-            )
+#             predicted_id = int(
+#                 all_students[0]
+#             )
 
-        # --------------------------
-        # Distance Verification
-        # --------------------------
+#         # --------------------------
+#         # Distance Verification
+#         # --------------------------
 
-        if predicted_id not in y_train:
-            continue
-        idx = y_train.index(predicted_id)
+#         if predicted_id not in y_train:
+#             continue
+#         idx = y_train.index(predicted_id)
 
-        stored_embedding = X_train[idx]
+#         stored_embedding = X_train[idx]
 
-        distance = np.linalg.norm(
-            stored_embedding - encoding
-        )
+#         distance = np.linalg.norm(
+#             stored_embedding - encoding
+#         )
 
-        threshold = 0.6
+#         threshold = 0.6
 
-        if distance <= threshold:
+#         if distance <= threshold:
 
-            detected_students[
-                predicted_id
-            ] = True
+#             detected_students[
+#                 predicted_id
+#             ] = True
 
-    return detected_students
+#     return detected_students

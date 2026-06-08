@@ -23,14 +23,14 @@ encoder = VoiceEncoder()
 # Output:
 #   Voice Vector
 # --------------------------------------------------
-from pydub.utils import get_prober_name
-AudioSegment.converter = (
-    r"C:\Users\Soumyadeep Ghosh\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe"
-)
-import os
-os.environ["FFMPEG_BINARY"] = (
-    r"C:\Users\Soumyadeep Ghosh\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe"
-)
+# from pydub.utils import get_prober_name
+# AudioSegment.converter = (
+#     r"C:\Users\Soumyadeep Ghosh\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe"
+# )
+# import os
+# os.environ["FFMPEG_BINARY"] = (
+#     r"C:\Users\Soumyadeep Ghosh\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin\ffmpeg.exe"
+# )
 
 # print("FFmpeg:", AudioSegment.converter)
 # print("Prober:", get_prober_name())
@@ -94,25 +94,25 @@ def get_voice_embedding(
 # Identify Single Speaker
 # --------------------------------------------------
 
-def identify_speaker(
-        new_embedding,
-        candidates_dict,
-        threshold=0.65
-):
+# def identify_speaker(
+#         new_embedding,
+#         candidates_dict,
+#         threshold=0.65
+# ):
 
-    best_sid = None
-    best_score = -1
-    for sid, stored_embedding in candidates_dict.items():
-        similarity = np.dot(
-            new_embedding,
-            stored_embedding
-        )
-        if similarity > best_score:
-            best_score = similarity
-            best_sid = sid
-    if best_score >= threshold:
-        return best_sid, best_score
-    return None, best_score
+#     best_sid = None
+#     best_score = -1
+#     for sid, stored_embedding in candidates_dict.items():
+#         similarity = np.dot(
+#             new_embedding,
+#             stored_embedding
+#         )
+#         if similarity > best_score:
+#             best_score = similarity
+#             best_sid = sid
+#     if best_score >= threshold:
+#         return best_sid, best_score
+#     return None, best_score
 
 
 # --------------------------------------------------
@@ -120,45 +120,45 @@ def identify_speaker(
 # Classroom Audio
 # --------------------------------------------------
 
-def process_bulk_audio(
-        audio_bytes,
-        candidates_dict,
-        threshold=0.65
-):
+# def process_bulk_audio(
+#         audio_bytes,
+#         candidates_dict,
+#         threshold=0.65
+# ):
 
-    audio, sr = librosa.load(
-        io.BytesIO(audio_bytes),
-        sr=16000
-    )
-    segments = librosa.effects.split(
-        audio,
-        top_db=30
-    )
-    identified_results = {}
-    for start, end in segments:
+#     audio, sr = librosa.load(
+#         io.BytesIO(audio_bytes),
+#         sr=16000
+#     )
+#     segments = librosa.effects.split(
+#         audio,
+#         top_db=30
+#     )
+#     identified_results = {}
+#     for start, end in segments:
 
-        if (end - start) < sr * 0.5:
-            continue
+#         if (end - start) < sr * 0.5:
+#             continue
 
-        segment_audio = audio[start:end]
-        wav = preprocess_wav(
-            segment_audio
-        )
-        embedding = encoder.embed_utterance(
-            wav
-        )
-        sid, score = identify_speaker(
-            embedding,
-            candidates_dict,
-            threshold
-        )
+#         segment_audio = audio[start:end]
+#         wav = preprocess_wav(
+#             segment_audio
+#         )
+#         embedding = encoder.embed_utterance(
+#             wav
+#         )
+#         sid, score = identify_speaker(
+#             embedding,
+#             candidates_dict,
+#             threshold
+#         )
 
-        if sid:
-            if (
-                sid not in identified_results
-                or score >
-                identified_results[sid]
-            ):
-                identified_results[sid] = score
+#         if sid:
+#             if (
+#                 sid not in identified_results
+#                 or score >
+#                 identified_results[sid]
+#             ):
+#                 identified_results[sid] = score
 
-    return identified_results
+#     return identified_results

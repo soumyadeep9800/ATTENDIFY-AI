@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../css/StudentDashboard.css";
+import { toast } from "react-toastify";
 
 function StudentDashboard() {
   const [subjectCode, setSubjectCode] = useState("");
@@ -51,11 +52,11 @@ function StudentDashboard() {
           subject_code: subjectCode,
         }
       );
-      alert("Successfully enrolled");
+      toast.success("Successfully enrolled");
       setSubjectCode("");
       fetchSubjects();
     } catch (error) {
-      alert(
+      toast.error(
         error.response?.data?.detail ||
           "Enrollment failed"
       );
@@ -77,11 +78,11 @@ function StudentDashboard() {
         }
       );
 
-      alert("Successfully unenrolled");
+      toast.success("Successfully unenrolled");
 
       fetchSubjects();
     } catch (error) {
-      alert(
+      toast.error(
         error.response?.data?.detail ||
           "Unenrollment failed"
       );

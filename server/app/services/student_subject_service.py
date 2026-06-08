@@ -3,7 +3,7 @@ from app.models.subject import Subject
 from app.models.student import Student
 from app.models.subject_student import SubjectStudent
 from app.models.attendance_log import AttendanceLog
-
+from sqlalchemy.orm import Session
 
 def enroll_subject(data, db):
     student = (
@@ -163,3 +163,32 @@ def get_student_subjects(
         })
 
     return result
+
+
+def get_subject_students(
+    subject_id: int,
+    db: Session
+):
+    students = (
+        db.query(Student)
+        .join(
+            SubjectStudent,
+            Student.student_id ==
+            SubjectStudent.student_id
+        )
+        .filter(
+            SubjectStudent.subject_id ==
+            subject_id
+        )
+        .all()
+    )
+
+    return [
+        {
+            "student_id":
+                student.student_id,
+            "name":
+                student.name
+        }
+        for student in students
+    ]
