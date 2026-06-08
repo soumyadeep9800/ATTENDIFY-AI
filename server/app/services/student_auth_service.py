@@ -76,13 +76,14 @@ async def register_student(
             status_code=400,
             detail="Voice not detected"
         )
+    
     # Prevent Duplicate Registration
-
+    FACE_DUPLICATE_THRESHOLD = 0.45
     students = db.query(Student).all()
+
     for existing_student in students:
-        embedding_data = (
-            existing_student.face_embedding
-        )
+        embedding_data = existing_student.face_embedding
+
         if embedding_data is None:
             continue
 
@@ -90,13 +91,21 @@ async def register_student(
             embedding_data,
             dtype=np.float64
         )
+
         if stored_embedding.shape != (128,):
             continue
+
         distance = np.linalg.norm(
-            face_embedding -
-            stored_embedding
+            face_embedding - stored_embedding
         )
-        if distance < 0.55:
+
+        print(
+            f"Duplicate Check -> "
+            f"Student={existing_student.name}, "
+            f"Distance={distance}"
+        )
+
+        if distance < FACE_DUPLICATE_THRESHOLD:
             raise HTTPException(
                 status_code=400,
                 detail="Student already registered"
@@ -117,14 +126,22 @@ async def register_student(
     }
 
 
+
+
+# Face Login
 # Face Login
 async def login_by_face(
     db: Session,
     photo: UploadFile
 ):
     photo_bytes = await photo.read()
-    image_np = bytes_to_image(photo_bytes)
-    current_embeddings = get_face_embeddings(image_np)
+
+    image_np = bytes_to_image(
+        photo_bytes
+    )
+    current_embeddings = get_face_embeddings(
+        image_np
+    )
 
     if (
         current_embeddings is None or
@@ -143,7 +160,6 @@ async def login_by_face(
     students = db.query(
         Student
     ).all()
-
     best_student = None
     best_distance = float("inf")
     for student in students:
@@ -159,24 +175,41 @@ async def login_by_face(
             current_embedding -
             stored_embedding
         )
+        print(
+            f"Student={student.name}, "
+            f"Distance={distance}"
+        )
         if distance < best_distance:
             best_distance = distance
             best_student = student
+    print(
+        "Best Student:",
+        best_student.name
+        if best_student else None
+    )
+    print(
+        "Best Distance:",
+        best_distance
+    )
 
-    FACE_THRESHOLD = 0.55
+    FACE_LOGIN_THRESHOLD = 0.45
 
     if (
         best_student is not None and
-        best_distance < FACE_THRESHOLD
+        best_distance < FACE_LOGIN_THRESHOLD
     ):
         return {
             "success": True,
             "student": {
-                "student_id": best_student.student_id,
-                "name": best_student.name
+                "student_id":
+                    best_student.student_id,
+                "name":
+                    best_student.name
             }
         }
+
     return {
         "success": False,
-        "message": "Face not recognized"
+        "message":
+            "Face not recognized"
     }

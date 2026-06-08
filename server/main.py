@@ -35,3 +35,15 @@ app.include_router(attendance_router)
 @app.get("/")
 def home():
     return {"message": "Attendify AI Backend Running"}
+
+
+#for login
+# During registration,the system extracts a 128-dimensional facial embedding using Dlib's ResNet-based face recognition model and stores it in PSQL.
+# During login, a new facial embedding is generated from the uploaded image and compared against all stored embeddings using Euclidean distance.
+# The student with the minimum distance is selected, and authentication succeeds only if the distance is below a predefined threshold.
+
+
+#For attend whenteacher upload image
+# The system uses Dlib to generate 128-dimensional face embeddings. For authentication, nearest-neighbor matching with Euclidean distance is used.
+# For classroom attendance, an SVM classifier is trained on registered student embeddings to identify multiple students efficiently,
+# followed by distance-based verification to reduce false positives.
