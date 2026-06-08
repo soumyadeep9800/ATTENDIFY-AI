@@ -1,15 +1,12 @@
 # Voice Recognition Service
 import tempfile
 from pydub import AudioSegment
-from pydub.utils import get_prober_name
+# from pydub.utils import get_prober_name
 import os
-import io
+# import io
 import librosa
 import numpy as np
-from resemblyzer import (
-    VoiceEncoder,
-    preprocess_wav
-)
+from resemblyzer import ( VoiceEncoder, preprocess_wav )
 # --------------------------------------------------
 # Load Encoder Once
 # --------------------------------------------------
@@ -94,71 +91,104 @@ def get_voice_embedding(
 # Identify Single Speaker
 # --------------------------------------------------
 
-# def identify_speaker(
-#         new_embedding,
-#         candidates_dict,
-#         threshold=0.65
-# ):
+def identify_speaker(
+        new_embedding,
+        candidates_dict,
+        threshold=0.65
+):
 
-#     best_sid = None
-#     best_score = -1
-#     for sid, stored_embedding in candidates_dict.items():
-#         similarity = np.dot(
-#             new_embedding,
-#             stored_embedding
-#         )
-#         if similarity > best_score:
-#             best_score = similarity
-#             best_sid = sid
-#     if best_score >= threshold:
-#         return best_sid, best_score
-#     return None, best_score
+    best_sid = None
+    best_score = -1
+    for sid, stored_embedding in candidates_dict.items():
+        similarity = (
+            np.dot(
+                new_embedding,
+                stored_embedding
+            ) /
+            (
+                np.linalg.norm(
+                    new_embedding
+                ) *
+                np.linalg.norm(
+                    stored_embedding
+                )
+            )
+        )
+        if similarity > best_score:
+            best_score = similarity
+            best_sid = sid
+    if best_score >= threshold:
+        return best_sid, float(best_score)
+
+    return None, float(best_score)
 
 
 # --------------------------------------------------
 # Bulk Audio Processing
 # Classroom Audio
 # --------------------------------------------------
+def process_bulk_audio(
+    audio_bytes,
+    candidates_dict,
+    threshold=0.65
+):
+    temp_path = None
+    wav_path = None
 
-# def process_bulk_audio(
-#         audio_bytes,
-#         candidates_dict,
-#         threshold=0.65
-# ):
+    try:
+        with tempfile.NamedTemporaryFile(
+            suffix=".webm",
+            delete=False
+        ) as f:
+            f.write(audio_bytes)
+            temp_path = f.name
 
-#     audio, sr = librosa.load(
-#         io.BytesIO(audio_bytes),
-#         sr=16000
-#     )
-#     segments = librosa.effects.split(
-#         audio,
-#         top_db=30
-#     )
-#     identified_results = {}
-#     for start, end in segments:
+        wav_path = temp_path + ".wav"
+        AudioSegment.from_file(
+            temp_path
+        ).export(
+            wav_path,
+            format="wav"
+        )
+        audio, sr = librosa.load(
+            wav_path,
+            sr=16000
+        )
+        segments = librosa.effects.split(
+            audio,
+            top_db=30
+        )
 
-#         if (end - start) < sr * 0.5:
-#             continue
+        identified_results = {}
 
-#         segment_audio = audio[start:end]
-#         wav = preprocess_wav(
-#             segment_audio
-#         )
-#         embedding = encoder.embed_utterance(
-#             wav
-#         )
-#         sid, score = identify_speaker(
-#             embedding,
-#             candidates_dict,
-#             threshold
-#         )
+        for start, end in segments:
+            if (end - start) < sr * 0.5:
+                continue
+            segment_audio = audio[start:end]
+            wav = preprocess_wav(
+                segment_audio
+            )
+            embedding = (
+                encoder.embed_utterance(
+                    wav
+                )
+            )
+            sid, score = identify_speaker(
+                embedding,
+                candidates_dict,
+                threshold
+            )
+            if sid:
+                if (
+                    sid not in identified_results
+                    or score >
+                    identified_results[sid]
+                ):
+                    identified_results[sid] = score
+        return identified_results
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
-#         if sid:
-#             if (
-#                 sid not in identified_results
-#                 or score >
-#                 identified_results[sid]
-#             ):
-#                 identified_results[sid] = score
-
-#     return identified_results
+        if wav_path and os.path.exists(wav_path):
+            os.remove(wav_path)

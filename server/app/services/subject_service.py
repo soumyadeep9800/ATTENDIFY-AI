@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.subject import Subject
+from app.models.subject_student import SubjectStudent
 
 
 def create_subject(
@@ -24,13 +25,32 @@ def get_teacher_subjects(
     db: Session,
     teacher_id: int
 ):
-    return (
+    subjects = (
         db.query(Subject)
         .filter(
             Subject.teacher_id == teacher_id
         )
         .all()
     )
+    result = []
+    for subject in subjects:
+        student_count = (
+            db.query(SubjectStudent)
+            .filter(
+                SubjectStudent.subject_id ==
+                subject.subject_id
+            )
+            .count()
+        )
+        result.append({
+            "subject_id": subject.subject_id,
+            "subject_code": subject.subject_code,
+            "name": subject.name,
+            "section": subject.section,
+            "students": student_count
+        })
+
+    return result
 
 
 def delete_subject(

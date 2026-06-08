@@ -11,7 +11,7 @@ class SubjectResponse(BaseModel):
     subject_code: str
     name: str
     section: str
-    teacher_id: int
+    students: int = 0
 
     class Config:
         from_attributes = True

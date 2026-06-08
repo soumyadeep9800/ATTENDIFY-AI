@@ -6,9 +6,8 @@ from app.models.student import Student
 from app.models.subject import Subject
 from app.models.subject_student import SubjectStudent
 from app.models.attendance_log import AttendanceLog
-
 from app.ml.face_service import get_face_embeddings
-from app.ml.voice_service import get_voice_embedding
+from app.ml.voice_service import process_bulk_audio
 from app.schemas.attendance_schema import (
     AttendanceSubmitRequest
 )
@@ -162,12 +161,6 @@ async def process_voice_attendance(
 ):
     audio_bytes = await audio.read()
 
-    detected_embedding = (
-        get_voice_embedding(
-            audio_bytes
-        )
-    )
-
     enrolled_students = (
         db.query(Student)
         .join(
@@ -182,38 +175,72 @@ async def process_voice_attendance(
         .all()
     )
 
-    recognized_students = []
+    candidates_dict = {}
 
     for student in enrolled_students:
 
         if student.voice_embedding is None:
             continue
 
-        stored_embedding = np.asarray(
+        candidates_dict[
+            student.student_id
+        ] = np.asarray(
             student.voice_embedding,
-            dtype=np.float64
+            dtype=np.float32
         )
-        if detected_embedding is None:
-            return False
-        distance = np.linalg.norm(detected_embedding - stored_embedding)
 
-        if distance < 0.75:
+    if not candidates_dict:
+        return {
+            "recognized_students": []
+        }
+
+    identified_results = process_bulk_audio(
+        audio_bytes,
+        candidates_dict,
+        threshold=0.65
+    )
+
+    recognized_students = []
+
+    for student in enrolled_students:
+
+        if (
+            student.student_id
+            in identified_results
+        ):
 
             recognized_students.append(
-                student
+                {
+                    "student_id":
+                        student.student_id,
+
+                    "name":
+                        student.name,
+
+                    "subject_id":
+                        subject_id,
+
+                    "is_present":
+                        True,
+
+                    "confidence":
+                        round(
+                            identified_results[
+                                student.student_id
+                            ],
+                            3
+                        )
+                }
             )
 
     return {
-        "recognized_students": [
-            {
-                "student_id": student.student_id,
-                "name": student.name,
-                "subject_id": subject_id,
-                "is_present": True
-            }
-            for student in recognized_students
-        ]
+        "recognized_students":
+            recognized_students
     }
+
+
+
+
 
 
 async def submit_attendance_logs(
@@ -252,7 +279,6 @@ async def submit_attendance_logs(
         "message": "Attendance Saved",
         "saved_count": saved_count
     }
-
 
 
 async def get_attendance_records(
