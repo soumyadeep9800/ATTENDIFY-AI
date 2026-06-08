@@ -14,19 +14,10 @@ function AttendanceRecords() {
   const teacherId =
     teacher?.teacher_id;
 
-  const [records, setRecords] =
-    useState([]);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [subjectFilter,
-    setSubjectFilter] =
-    useState("");
-
-  const [dateFilter,
-    setDateFilter] =
-    useState("");
+  const [records, setRecords] = useState([]);
+  const [search, setSearch] = useState("");
+  const [subjectFilter,setSubjectFilter] = useState("");
+  const [dateFilter,setDateFilter] =  useState("");
 
   const [stats, setStats] =
     useState({
@@ -52,19 +43,15 @@ function AttendanceRecords() {
 
         const data =
           await response.json();
-
         setRecords(data);
-
         setStats({
           totalRecords: data.length,
-
           todayPresent:
             data.filter(
               (record) =>
                 record.status ===
                 "Present"
             ).length,
-
           subjects:
             new Set(
               data.map(
@@ -72,7 +59,6 @@ function AttendanceRecords() {
                   record.subject_name
               )
             ).size,
-
           attendanceRate:
             data.length > 0
               ? Math.round(
