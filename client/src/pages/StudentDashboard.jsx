@@ -3,11 +3,15 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../css/StudentDashboard.css";
 import { toast } from "react-toastify";
+import QRScanner from "../components/QRScanner";
 
 function StudentDashboard() {
   const [subjectCode, setSubjectCode] = useState("");
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showScanner, setShowScanner] =  useState(false);
+  const [scanning, setScanning] = useState(false);
+
   const navigate = useNavigate();
   const student = JSON.parse(
     localStorage.getItem("student")
@@ -108,6 +112,39 @@ function StudentDashboard() {
     }
   }, []);
 
+  const handleQREnroll = async (
+    decodedText
+  ) => {
+    try {
+      const qrData =
+        JSON.parse(decodedText);
+
+      await axios.post(
+        "http://localhost:8000/subjects/enroll-subject",
+        {
+          student_id:
+            student.student_id,
+          subject_code:
+            qrData.subject_code,
+        }
+      );
+
+      toast.success(
+        "Successfully enrolled"
+      );
+
+      fetchSubjects();
+
+      setShowScanner(false);
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        "Invalid QR Code"
+      );
+    }
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -120,7 +157,7 @@ function StudentDashboard() {
         ATTENDIFY AI
       </div>
 
-      <button className="logout-btn"
+      <button className="logout-btn2"
         onClick={() => {
           localStorage.removeItem("student");
           window.location.href = "/";
@@ -146,8 +183,15 @@ function StudentDashboard() {
             }
           />
 
-          <button onClick={handleEnroll}>
-            Enroll
+          <button onClick={handleEnroll}> Enroll </button>
+
+          <button
+            className="scan-btn"
+            onClick={() =>
+              setShowScanner(true)
+            }
+          >
+            Scan QR
           </button>
         </div>
       </div>
@@ -208,6 +252,34 @@ function StudentDashboard() {
         )}
       </div>
     </div>
+
+    {
+      showScanner && (
+        <div className="modal-overlay">
+          <div className="scanner-modal">
+
+            <h2>
+              Scan Subject QR
+            </h2>
+
+            <QRScanner
+              onScan={
+                handleQREnroll
+              }
+            />
+
+            <button
+              onClick={() =>
+                setShowScanner(false)
+              }
+            >
+              Close
+            </button>
+
+          </div>
+        </div>
+      )
+    }
     </div>
   );
 }

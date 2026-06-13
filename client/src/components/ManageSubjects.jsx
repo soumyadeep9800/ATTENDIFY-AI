@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../css/ManageSubject.css";
+import QRCode from "react-qr-code";
 import { toast } from "react-toastify";
 
 function ManageSubjects() {
@@ -8,7 +9,9 @@ function ManageSubjects() {
   const [subjectCode, setSubjectCode] = useState("");
   const [section, setSection] = useState("");
   const [subjects, setSubjects] = useState([]);
-  
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState(null);
+
   const teacher = JSON.parse(
   localStorage.getItem("teacher")
   );
@@ -112,10 +115,114 @@ function ManageSubjects() {
     toast.success("Subject code copied successfully");
   };
 
-  const handleShowQR = (code) => {
-    toast.info(
-      `Future QR Code Feature\nEnrollment Code: ${code}`
-    );
+  const handleShowQR = (subject) => {
+    setSelectedSubject(subject);
+    setShowQRModal(true);
+  };
+
+  const handleDownloadQR = () => {
+    const svg = document.getElementById("subject-qr");
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    canvas.width = 300;
+    canvas.height = 300;
+
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        300,
+        300
+      );
+
+      const pngFile = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `${selectedSubject.subject_code}.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
+  const handleShareQR = async () => {
+    try {
+      const svg = document.getElementById("subject-qr");
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas =  document.createElement("canvas");
+      const ctx =  canvas.getContext("2d");
+      const img = new Image();
+      canvas.width = 300;
+      canvas.height = 300;
+
+      img.onload = async () => {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          300,
+          300
+        );
+
+        canvas.toBlob(
+          async (blob) => {
+            const file = new File(
+              [blob],
+              `${selectedSubject.subject_code}.png`,
+              {
+                type: "image/png",
+              }
+            );
+
+            if (
+              navigator.canShare &&
+              navigator.canShare({
+                files: [file],
+              })
+            ) {
+              await navigator.share({
+                title:
+                  selectedSubject.name,
+                text:
+                  "Scan this QR to join the subject",
+                files: [file],
+              });
+            } else {
+              toast.info(
+                "Sharing not supported on this device"
+              );
+            }
+          },
+          "image/png"
+        );
+      };
+
+      img.src =  "data:image/svg+xml;base64," +  btoa(svgData);
+    } catch (err) {
+      console.error(err);
+      toast.error(
+        "Unable to share QR"
+      );
+    }
   };
 
   return (
@@ -123,7 +230,6 @@ function ManageSubjects() {
 
       <div className="subjects-header">
         <h1>Manage Subjects</h1>
-
         <p>
           Create, manage and share subject enrollment
           details with students.
@@ -136,7 +242,6 @@ function ManageSubjects() {
         <h2>Create Subject</h2>
 
         <div className="form-grid">
-
           <div className="input-group">
             <label>Subject Name</label>
 
@@ -239,7 +344,7 @@ function ManageSubjects() {
                   <button
                     className="qr-btn"
                     onClick={() =>
-                      handleShowQR(subject.subject_code)
+                      handleShowQR(subject)
                     }
                   >
                     Show QR
@@ -262,6 +367,62 @@ function ManageSubjects() {
         </div>
       </div>
 
+
+      {
+        showQRModal &&
+        selectedSubject && (
+          <div className="modal-overlay">
+            <div className="qr-modal">
+
+              <h2>
+                {selectedSubject.name}
+              </h2>
+
+              <QRCode
+                id="subject-qr"
+                value={JSON.stringify({
+                  subject_id: selectedSubject.subject_id,
+                  subject_code: selectedSubject.subject_code,
+                })}
+                size={250}
+              />
+
+              <p>
+                Scan this QR to join the
+                subject
+              </p>
+
+              <div className="qr-buttons">
+
+              <button
+                className="download-btn"
+                onClick={handleDownloadQR}
+              >
+                Download QR
+              </button>
+
+              <button
+                className="share-qr-btn"
+                onClick={handleShareQR}
+              >
+                Share QR
+              </button>
+
+              <button
+                className="close-btn"
+                onClick={() =>
+                  setShowQRModal(false)
+                }
+              >
+                Close
+              </button>
+
+            </div>
+
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 }
