@@ -43,6 +43,11 @@ app.include_router(attendance_router)
 def home():
     return {"message": "Attendify AI Backend Running"}
 
+# Test Connection for neon
+# from sqlalchemy import text
+# with engine.connect() as conn:
+#     result = conn.execute(text("SELECT 1"))
+#     print(result.scalar())
 
 #for login
 # During registration,the system extracts a 128-dimensional facial embedding using Dlib's ResNet-based face recognition model and stores it in PSQL.

@@ -20,8 +20,6 @@ class EnrollSubjectRequest(BaseModel):
     student_id: int
     subject_code: str
 
-from pydantic import BaseModel
-
 
 class StudentSubjectResponse(BaseModel):
     subject_id: int

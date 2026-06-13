@@ -3,11 +3,7 @@ from app.models.subject import Subject
 from app.models.subject_student import SubjectStudent
 
 
-def create_subject(
-    db: Session,
-    teacher_id: int,
-    subject_data
-):
+def create_subject(db, teacher_id, subject_data):
     subject = Subject(
         subject_code=subject_data.subject_code,
         name=subject_data.name,
@@ -18,7 +14,14 @@ def create_subject(
     db.add(subject)
     db.commit()
     db.refresh(subject)
-    return subject
+
+    return {
+        "subject_id": subject.subject_id,
+        "subject_code": subject.subject_code,
+        "name": subject.name,
+        "section": subject.section,
+        "enrolled_students": 0
+    }
 
 
 def get_teacher_subjects(
