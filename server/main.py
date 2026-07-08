@@ -15,22 +15,17 @@ app = FastAPI(
     description="AI Powered Face & Voice Attendance System",
     version="1.0.0"
 )
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=[
-#         "http://localhost:5173"
-#     ],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://attendify-ai-tvwn-blond.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 app.include_router(teacher_router)
 app.include_router(teacher_subject_router)
 app.include_router(student_router)
