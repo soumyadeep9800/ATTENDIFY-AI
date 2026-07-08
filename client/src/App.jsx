@@ -6,7 +6,7 @@ import StudentLogin from "./pages/StudentLogin";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherLogin from "./pages/TeacherLogin";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import Footer from "./components/footer";
+import Footer from "./components/Footer";
 
 function App() {
   return (
